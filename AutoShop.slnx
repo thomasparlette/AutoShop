@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AutoShop.Core/AutoShop.Core.csproj" />
+  <Project Path="AutoShop.Data/AutoShop.Data.csproj" />
+  <Project Path="AutoShop.MainApp/AutoShop.MainApp.csproj" />
+  <Project Path="AutoShop.Services/AutoShop.Services.csproj" />
+</Solution>
