@@ -1,10 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace AutoShop.Data
 {
-    internal class AppDbContextFactory
+    public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
+        public AppDbContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+
+            var dbPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AutoShop",
+                "AutoShop.db");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+
+            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+
+            return new AppDbContext(optionsBuilder.Options);
+        }
     }
 }
