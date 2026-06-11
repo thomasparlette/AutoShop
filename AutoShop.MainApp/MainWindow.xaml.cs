@@ -1,24 +1,25 @@
-﻿using System.Text;
+﻿using AutoShop.MainApp.Helpers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace AutoShop.MainApp
+namespace AutoShop.MainApp;
+
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public MainWindow()
     {
-        public MainWindow()
+        InitializeComponent();
+        MainTabs.SelectionChanged += MainTabs_SelectionChanged;
+    }
+
+    private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MainTabs.SelectedContent is not FrameworkElement element)
+            return;
+
+        if (element.DataContext is IRefreshable refreshable)
         {
-            InitializeComponent();
+            refreshable.Refresh();
         }
     }
 }
