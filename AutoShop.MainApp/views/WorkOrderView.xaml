@@ -93,15 +93,16 @@
                     <DataGrid ItemsSource="{Binding LineItems}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
+                              IsReadOnly="False"
                               Height="180"
                               Margin="0,0,0,10">
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Header="Part" Binding="{Binding IsPart}" Width="50" />
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*" />
-                            <DataGridTextColumn Header="Hours" Binding="{Binding LaborHours}" Width="*" />
-                            <DataGridTextColumn Header="Rate" Binding="{Binding LaborRate}" Width="*" />
-                            <DataGridTextColumn Header="Part Cost" Binding="{Binding PartsCost}" Width="*" />
-                            <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal}" Width="*" />
+                            <DataGridCheckBoxColumn Header="Part" Binding="{Binding IsPart, Mode=TwoWay}" Width="50" />
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                            <DataGridTextColumn Header="Hours" Binding="{Binding LaborHours, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Rate" Binding="{Binding LaborRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Part Cost" Binding="{Binding PartsCost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal}" Width="*" IsReadOnly="True" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -122,6 +123,7 @@
                         <Button Content="Save" Width="90" Margin="0,0,8,0" Command="{Binding SaveCommand}" />
                         <Button Content="Delete" Width="90" Margin="0,0,8,0" Command="{Binding DeleteCommand}" />
                         <Button Content="Clear" Width="90" Command="{Binding NewCommand}" />
+                        <Button Content="Receipt" Width="90" Margin="0,0,8,0" Command="{Binding GenerateReceiptCommand}" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

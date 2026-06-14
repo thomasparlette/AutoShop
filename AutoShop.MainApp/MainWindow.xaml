@@ -6,7 +6,7 @@
         Height="750"
         Width="1300">
     <Grid>
-        <TabControl x:Name="MainTabs"> 
+        <TabControl x:Name="MainTabs">
             <TabItem Header="Customers">
                 <views:CustomerView />
             </TabItem>
@@ -15,6 +15,9 @@
             </TabItem>
             <TabItem Header="Work Orders">
                 <views:WorkOrderView />
+            </TabItem>
+            <TabItem x:Name="SettingsTab" Header="Shop Settings">
+                <views:ShopSettingsView />
             </TabItem>
         </TabControl>
     </Grid>

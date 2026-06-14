@@ -135,4 +135,15 @@ public class WorkOrderService
         var factory = new AppDbContextFactory();
         return factory.CreateDbContext(Array.Empty<string>());
     }
+    public WorkOrder? GetWorkOrderById(int id)
+    {
+        using var db = CreateContext();
+
+        return db.WorkOrders
+            .Include(w => w.Customer)
+            .Include(w => w.Vehicle)
+            .Include(w => w.LineItems)
+            .Include(w => w.Payments)
+            .FirstOrDefault(w => w.Id == id);
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoShop.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using AutoShop.Core.Enums;
 
 namespace AutoShop.Data
 {
@@ -16,7 +17,8 @@ namespace AutoShop.Data
         public DbSet<WorkOrderLineItem> WorkOrderLineItems => Set<WorkOrderLineItem>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<Appointment> Appointments => Set<Appointment>();
-
+        public DbSet<AppUser> Users => Set<AppUser>();
+        public DbSet<ShopSettings> ShopSettings => Set<ShopSettings>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -86,6 +88,32 @@ namespace AutoShop.Data
             modelBuilder.Entity<Appointment>()
                 .Property(a => a.Status)
                 .HasConversion<int>();
+
+            modelBuilder.Entity<AppUser>()
+                .HasIndex(u => u.UserName)
+                .IsUnique();
+
+            modelBuilder.Entity<AppUser>()
+                .Property(u => u.Role)
+                .HasConversion<int>();
+
+            modelBuilder.Entity<ShopSettings>()
+                .Property(s => s.TaxRate)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ShopSettings>()
+                .Property(s => s.NextInvoiceNumber)
+                .HasDefaultValue(1);
+
+            modelBuilder.Entity<ShopSettings>().HasData(new ShopSettings
+            {
+                Id = 1,
+                ShopName = "AutoShop",
+                TaxRate = 0m,
+                InvoicePrefix = "WO-",
+                NextInvoiceNumber = 1,
+                ReceiptFooterText = "Thank you for your business."
+            });
         }
     }
 }
