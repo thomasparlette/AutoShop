@@ -31,16 +31,10 @@ public class ReceiptService
         sb.AppendLine();
 
         sb.AppendLine("LINE ITEMS");
+        sb.AppendLine("LINE ITEMS");
         foreach (var item in workOrder.LineItems)
         {
-            if (item.IsPart)
-            {
-                sb.AppendLine($"PART  {item.Description,-25} {item.PartsCost,10:C}");
-            }
-            else
-            {
-                sb.AppendLine($"LABOR {item.Description,-25} {item.LaborHours} hrs @ {item.LaborRate:C} = {item.LineTotal:C}");
-            }
+            sb.AppendLine($"{item.ItemType,-6} {item.Description,-25} Qty:{item.Quantity:N2}  Unit:{item.UnitPrice:C}  Total:{item.LineTotal:C}");
         }
 
         sb.AppendLine();

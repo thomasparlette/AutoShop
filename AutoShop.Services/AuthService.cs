@@ -22,7 +22,8 @@ public class AuthService
                 TaxRate = 0m,
                 InvoicePrefix = "WO-",
                 NextInvoiceNumber = 1,
-                ReceiptFooterText = "Thank you for your business."
+                ReceiptFooterText = "Thank you for your business.",
+                DefaultLaborRate = 0m,
             });
         }
 

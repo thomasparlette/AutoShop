@@ -91,18 +91,28 @@
                     <TextBlock Text="Line Items" FontWeight="Bold" Margin="0,10,0,6" />
 
                     <DataGrid ItemsSource="{Binding LineItems}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              IsReadOnly="False"
-                              Height="180"
-                              Margin="0,0,0,10">
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          IsReadOnly="False"
+          Height="180"
+          Margin="0,0,0,10">
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Header="Part" Binding="{Binding IsPart, Mode=TwoWay}" Width="50" />
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                            <DataGridTextColumn Header="Hours" Binding="{Binding LaborHours, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                            <DataGridTextColumn Header="Rate" Binding="{Binding LaborRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                            <DataGridTextColumn Header="Part Cost" Binding="{Binding PartsCost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                            <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Type"
+                            Binding="{Binding ItemType, Mode=TwoWay}"
+                            Width="90" />
+                            <DataGridTextColumn Header="Description"
+                            Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Width="2*" />
+                            <DataGridTextColumn Header="Qty"
+                            Binding="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                            Width="80" />
+                            <DataGridTextColumn Header="Unit Price"
+                            Binding="{Binding UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=C}"
+                            Width="100" />
+                            <DataGridTextColumn Header="Line Total"
+                            Binding="{Binding LineTotal, StringFormat=C}"
+                            IsReadOnly="True"
+                            Width="100" />
                         </DataGrid.Columns>
                     </DataGrid>
 

@@ -26,4 +26,5 @@ public class ShopSettings
 
     public string? BusinessHours { get; set; }
     public string? DefaultThankYouMessage { get; set; }
+    public decimal DefaultLaborRate { get; set; } = 0m;
 }

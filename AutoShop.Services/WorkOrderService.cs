@@ -79,7 +79,7 @@ public class WorkOrderService
         {
             db.WorkOrders.Update(workOrder);
         }
-
+        CurrentWorkOrder.LineItems = LineItems.ToList();
         db.SaveChanges();
         return workOrder;
     }
@@ -98,27 +98,22 @@ public class WorkOrderService
 
     private static void RecalculateTotals(WorkOrder workOrder)
     {
+        if (workOrder.LineItems == null)
+        {
+            workOrder.LineItems = new List<WorkOrderLineItem>();
+        }
+
         foreach (var item in workOrder.LineItems)
         {
-            if (item.IsPart)
-            {
-                item.LaborHours = 0;
-                item.LaborRate = 0;
-                item.LineTotal = item.PartsCost;
-            }
-            else
-            {
-                item.PartsCost = 0;
-                item.LineTotal = item.LaborHours * item.LaborRate;
-            }
+            item.LineTotal = item.Quantity * item.UnitPrice;
         }
 
         workOrder.LaborTotal = workOrder.LineItems
-            .Where(x => !x.IsPart)
+            .Where(x => x.ItemType == WorkOrderLineItemType.Labor)
             .Sum(x => x.LineTotal);
 
         workOrder.PartsTotal = workOrder.LineItems
-            .Where(x => x.IsPart)
+            .Where(x => x.ItemType == WorkOrderLineItemType.Part)
             .Sum(x => x.LineTotal);
 
         workOrder.GrandTotal = workOrder.LaborTotal + workOrder.PartsTotal - workOrder.DiscountTotal + workOrder.TaxTotal;
@@ -145,5 +140,26 @@ public class WorkOrderService
             .Include(w => w.LineItems)
             .Include(w => w.Payments)
             .FirstOrDefault(w => w.Id == id);
+    }
+    private void AddLaborLine()
+    {
+        LineItems.Add(new WorkOrderLineItem
+        {
+            ItemType = WorkOrderLineItemType.Labor,
+            Description = "Labor",
+            Quantity = 1,
+            UnitPrice = 0
+        });
+    }
+
+    private void AddPartLine()
+    {
+        LineItems.Add(new WorkOrderLineItem
+        {
+            ItemType = WorkOrderLineItemType.Part,
+            Description = "Part",
+            Quantity = 1,
+            UnitPrice = 0
+        });
     }
 }

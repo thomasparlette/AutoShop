@@ -1,12 +1,13 @@
 ﻿using AutoShop.Core.Entities;
 using AutoShop.Core.Enums;
+using AutoShop.Data;
 using AutoShop.MainApp.Helpers;
 using AutoShop.Services;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using System.Collections.Specialized;
 namespace AutoShop.MainApp.ViewModels;
 
 public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
@@ -186,8 +187,6 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
                 Id = item.Id,
                 WorkOrderId = item.WorkOrderId,
                 Description = item.Description,
-                LaborHours = item.LaborHours,
-                LaborRate = item.LaborRate,
                 PartsCost = item.PartsCost,
                 LineTotal = item.LineTotal,
                 IsPart = item.IsPart
@@ -246,27 +245,29 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
     private void AddLaborLine()
     {
-        var item = new WorkOrderLineItem
+        LineItems.Add(new WorkOrderLineItem
         {
+            ItemType = WorkOrderLineItemType.Labor,
             Description = "Labor",
-            LaborHours = 1,
-            LaborRate = 0,
-            IsPart = false
-        };
-
-        LineItems.Add(item);
+            Quantity = 1m,
+            UnitPrice = GetDefaultLaborRate()
+        });
+    }
+    private decimal GetDefaultLaborRate()
+    {
+        using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
+        return db.ShopSettings.FirstOrDefault()?.DefaultLaborRate ?? 0m;
     }
 
     private void AddPartLine()
     {
-        var item = new WorkOrderLineItem
+        LineItems.Add(new WorkOrderLineItem
         {
+            ItemType = WorkOrderLineItemType.Part,
             Description = "Part",
-            PartsCost = 0,
-            IsPart = true
-        };
-
-        LineItems.Add(item);
+            Quantity = 1m,
+            UnitPrice = 0m
+        });
     }
 
     private void RemoveSelectedLine()

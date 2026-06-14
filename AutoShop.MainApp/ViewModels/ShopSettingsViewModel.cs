@@ -217,4 +217,13 @@ public class ShopSettingsViewModel : INotifyPropertyChanged, IRefreshable
 
         LogoPath = destinationPath;
     }
+    public decimal DefaultLaborRate
+    {
+        get => Settings.DefaultLaborRate;
+        set
+        {
+            Settings.DefaultLaborRate = value;
+            OnPropertyChanged();
+        }
+    }
 }

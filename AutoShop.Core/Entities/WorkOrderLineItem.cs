@@ -3,19 +3,35 @@ using System.Runtime.CompilerServices;
 
 namespace AutoShop.Core.Entities;
 
+public enum WorkOrderLineItemType
+{
+    Labor = 0,
+    Part = 1
+}
+
 public class WorkOrderLineItem : INotifyPropertyChanged
 {
+    private WorkOrderLineItemType _itemType;
     private string _description = string.Empty;
-    private decimal _laborHours;
-    private decimal _laborRate;
-    private decimal _partsCost;
+    private decimal _quantity = 1m;
+    private decimal _unitPrice;
     private decimal _lineTotal;
-    private bool _isPart;
 
     public int Id { get; set; }
 
     public int WorkOrderId { get; set; }
     public WorkOrder? WorkOrder { get; set; }
+
+    public WorkOrderLineItemType ItemType
+    {
+        get => _itemType;
+        set
+        {
+            _itemType = value;
+            Recalculate();
+            OnPropertyChanged();
+        }
+    }
 
     public string Description
     {
@@ -27,34 +43,23 @@ public class WorkOrderLineItem : INotifyPropertyChanged
         }
     }
 
-    public decimal LaborHours
+    public decimal Quantity
     {
-        get => _laborHours;
+        get => _quantity;
         set
         {
-            _laborHours = value;
+            _quantity = value;
             Recalculate();
             OnPropertyChanged();
         }
     }
 
-    public decimal LaborRate
+    public decimal UnitPrice
     {
-        get => _laborRate;
+        get => _unitPrice;
         set
         {
-            _laborRate = value;
-            Recalculate();
-            OnPropertyChanged();
-        }
-    }
-
-    public decimal PartsCost
-    {
-        get => _partsCost;
-        set
-        {
-            _partsCost = value;
+            _unitPrice = value;
             Recalculate();
             OnPropertyChanged();
         }
@@ -70,33 +75,13 @@ public class WorkOrderLineItem : INotifyPropertyChanged
         }
     }
 
-    public bool IsPart
-    {
-        get => _isPart;
-        set
-        {
-            _isPart = value;
-            Recalculate();
-            OnPropertyChanged();
-        }
-    }
-
     private void Recalculate()
     {
-        if (IsPart)
-        {
-            LineTotal = PartsCost;
-        }
-        else
-        {
-            LineTotal = LaborHours * LaborRate;
-        }
+        LineTotal = Quantity * UnitPrice;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
