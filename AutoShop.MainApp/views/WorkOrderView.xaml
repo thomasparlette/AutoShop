@@ -63,9 +63,9 @@
                               Margin="0,0,0,8" />
 
                     <TextBlock Text="Status" />
-                    <ComboBox ItemsSource="{Binding StatusOptions}"
-                              SelectedItem="{Binding CurrentWorkOrder.Status, Mode=TwoWay}"
-                              Margin="0,0,0,8" />
+                  <ComboBox ItemsSource="{Binding StatusOptions}"
+                            SelectedItem="{Binding SelectedStatus, Mode=TwoWay}"
+                            Margin="0,0,0,8" />
 
                     <TextBlock Text="Complaint" />
                     <TextBox Text="{Binding CurrentWorkOrder.Complaint, UpdateSourceTrigger=PropertyChanged}"
@@ -134,6 +134,10 @@
                         <Button Content="Delete" Width="90" Margin="0,0,8,0" Command="{Binding DeleteCommand}" />
                         <Button Content="Clear" Width="90" Command="{Binding NewCommand}" />
                         <Button Content="Receipt" Width="90" Margin="0,0,8,0" Command="{Binding GenerateReceiptCommand}" />
+                      <Button Content="Inspection Checklist"
+                              Width="150"
+                              Margin="0,0,8,0"
+                              Command="{Binding OpenInspectionCommand}" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

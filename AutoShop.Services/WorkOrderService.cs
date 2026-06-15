@@ -40,6 +40,8 @@ public class WorkOrderService
             .Include(w => w.Vehicle)
             .Include(w => w.LineItems)
             .Include(w => w.Payments)
+            .Include(w => w.Inspection)
+            .ThenInclude(i => i.Items)
             .AsNoTracking()
             .AsQueryable();
 
@@ -69,6 +71,8 @@ public class WorkOrderService
             .Include(w => w.Vehicle)
             .Include(w => w.LineItems)
             .Include(w => w.Payments)
+            .Include(w => w.Inspection)
+            .ThenInclude(i => i.Items)
             .FirstOrDefault(w => w.Id == id);
     }
 

@@ -19,6 +19,8 @@ namespace AutoShop.Data
         public DbSet<Appointment> Appointments => Set<Appointment>();
         public DbSet<AppUser> Users => Set<AppUser>();
         public DbSet<ShopSettings> ShopSettings => Set<ShopSettings>();
+        public DbSet<WorkOrderInspection> WorkOrderInspections => Set<WorkOrderInspection>();
+        public DbSet<WorkOrderInspectionItem> WorkOrderInspectionItems => Set<WorkOrderInspectionItem>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -114,6 +116,26 @@ namespace AutoShop.Data
                 NextInvoiceNumber = 1,
                 ReceiptFooterText = "Thank you for your business."
             });
+
+            modelBuilder.Entity<WorkOrder>()
+                .HasOne(w => w.Inspection)
+                .WithOne(i => i.WorkOrder!)
+                .HasForeignKey<WorkOrderInspection>(i => i.WorkOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkOrderInspection>()
+                .HasMany(i => i.Items)
+                .WithOne(x => x.WorkOrderInspection!)
+                .HasForeignKey(x => x.WorkOrderInspectionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkOrderInspection>()
+                .HasIndex(i => i.WorkOrderId)
+                .IsUnique();
+
+            modelBuilder.Entity<WorkOrderInspectionItem>()
+                .Property(i => i.Status)
+                .HasConversion<int>();
         }
     }
 }

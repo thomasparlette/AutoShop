@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using System.Windows;
 
 namespace AutoShop.MainApp.ViewModels;
 
@@ -99,7 +100,29 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public ICommand AddPartLineCommand { get; }
     public ICommand RemoveLineCommand { get; }
     public ICommand GenerateReceiptCommand { get; }
+    public RelayCommand OpenInspectionCommand { get; }
+    public Array StatusOptions => Enum.GetValues(typeof(WorkOrderStatus));
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private WorkOrderStatus _selectedStatus;
+    public WorkOrderStatus SelectedStatus
+    {
+        get => _selectedStatus;
+        set
+        {
+            if (_selectedStatus == value)
+                return;
+
+            _selectedStatus = value;
+            CurrentWorkOrder.Status = value;
+            OnPropertyChanged();
+            OpenInspectionCommand.RaiseCanExecuteChanged();
+        }
+    }
+    public bool CanOpenInspection =>
+    SelectedStatus == WorkOrderStatus.Open ||
+    SelectedStatus == WorkOrderStatus.InProgress ||
+    SelectedStatus == WorkOrderStatus.WaitingApproval;
     public WorkOrderViewModel()
     {
         NewCommand = new RelayCommand(NewWorkOrder);
@@ -110,7 +133,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         AddPartLineCommand = new RelayCommand(AddPartLine);
         RemoveLineCommand = new RelayCommand(RemoveSelectedLine);
         GenerateReceiptCommand = new RelayCommand(GenerateReceipt);
-
+        OpenInspectionCommand = new RelayCommand(OpenInspection, () => CanOpenInspection);
         LineItems.CollectionChanged += LineItems_CollectionChanged;
 
         LoadCustomers();
@@ -182,8 +205,9 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             BalanceDue = workOrder.BalanceDue
         };
 
-        LineItems.Clear();
+        SelectedStatus = workOrder.Status;
 
+        LineItems.Clear();
         foreach (var item in workOrder.LineItems)
         {
             LineItems.Add(new WorkOrderLineItem
@@ -221,12 +245,15 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             CreatedAt = DateTime.Now
         };
 
+        SelectedStatus = WorkOrderStatus.Draft;
+
         LineItems.Clear();
         RecalculateCurrentTotals();
     }
 
     private void SaveWorkOrder()
     {
+        CurrentWorkOrder.Status = SelectedStatus;
         CurrentWorkOrder.LineItems = LineItems.ToList();
 
         if (SelectedCustomer != null)
@@ -287,10 +314,6 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
         return db.ShopSettings.FirstOrDefault()?.DefaultLaborRate ?? 0m;
     }
-
-    public Array StatusOptions => Enum.GetValues(typeof(WorkOrderStatus));
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
@@ -354,5 +377,29 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         var receiptWindow = new AutoShop.MainApp.Views.ReceiptWindow(receiptViewModel);
         receiptWindow.ShowDialog();
+    }
+    private void OpenInspection()
+    {
+        if (!CanOpenInspection)
+        {
+            MessageBox.Show("Inspection checklist is only available when the work order is Open, In Progress, or Waiting Approval.");
+            return;
+        }
+
+        if (CurrentWorkOrder.Id == 0)
+        {
+            MessageBox.Show("Please save the work order first.");
+            return;
+        }
+
+        var window = new AutoShop.MainApp.Views.InspectionChecklistWindow(CurrentWorkOrder.Id);
+        window.ShowDialog();
+
+        var refreshed = _workOrderService.GetWorkOrderById(CurrentWorkOrder.Id);
+        if (refreshed != null)
+        {
+            LoadSelectedWorkOrder(refreshed);
+            LoadWorkOrders();
+        }
     }
 }

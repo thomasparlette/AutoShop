@@ -32,7 +32,7 @@ namespace AutoShop.Core.Entities
         public decimal GrandTotal { get; set; }
         public decimal AmountPaid { get; set; }
         public decimal BalanceDue { get; set; }
-
+        public WorkOrderInspection? Inspection { get; set; }
         public ICollection<WorkOrderLineItem> LineItems { get; set; } = new List<WorkOrderLineItem>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
