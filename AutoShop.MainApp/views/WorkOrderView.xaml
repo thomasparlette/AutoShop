@@ -63,9 +63,23 @@
                               Margin="0,0,0,8" />
 
                     <TextBlock Text="Status" />
-                  <ComboBox ItemsSource="{Binding StatusOptions}"
-                            SelectedItem="{Binding SelectedStatus, Mode=TwoWay}"
-                            Margin="0,0,0,8" />
+                  <Border Background="{Binding StatusBrush}"
+                          CornerRadius="5"
+                          Padding="10"
+                          Margin="0,0,0,10">
+                    <TextBlock Text="{Binding CurrentStatusDisplay}"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               FontSize="16"
+                               HorizontalAlignment="Center"/>
+                  </Border>
+                  <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <Button Content="Open" Width="80" Margin="0,0,6,0" Command="{Binding SetOpenCommand}" />
+                    <Button Content="In Progress" Width="95" Margin="0,0,6,0" Command="{Binding SetInProgressCommand}" />
+                    <Button Content="Waiting Approval" Width="120" Margin="0,0,6,0" Command="{Binding SetWaitingApprovalCommand}" />
+                    <Button Content="Completed" Width="90" Margin="0,0,6,0" Command="{Binding SetCompletedCommand}" />
+                    <Button Content="Paid" Width="80" Command="{Binding SetPaidCommand}" />
+                  </StackPanel>
 
                     <TextBlock Text="Complaint" />
                     <TextBox Text="{Binding CurrentWorkOrder.Complaint, UpdateSourceTrigger=PropertyChanged}"

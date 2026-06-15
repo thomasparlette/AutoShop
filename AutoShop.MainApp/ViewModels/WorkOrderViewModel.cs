@@ -9,7 +9,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows;
-
+using System.Windows.Media;
 namespace AutoShop.MainApp.ViewModels;
 
 public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
@@ -20,6 +20,9 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public ObservableCollection<Customer> Customers { get; } = new();
     public ObservableCollection<Vehicle> Vehicles { get; } = new();
     public ObservableCollection<WorkOrderLineItem> LineItems { get; } = new();
+    public string CurrentStatusDisplay =>
+    SelectedStatus.ToString().Replace("InProgress", "In Progress")
+                             .Replace("WaitingApproval", "Waiting Approval");
 
     private WorkOrder? _selectedWorkOrder;
     public WorkOrder? SelectedWorkOrder
@@ -100,6 +103,11 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public ICommand AddPartLineCommand { get; }
     public ICommand RemoveLineCommand { get; }
     public ICommand GenerateReceiptCommand { get; }
+    public ICommand SetOpenCommand { get; }
+    public ICommand SetInProgressCommand { get; }
+    public ICommand SetWaitingApprovalCommand { get; }
+    public ICommand SetCompletedCommand { get; }
+    public ICommand SetPaidCommand { get; }
     public RelayCommand OpenInspectionCommand { get; }
     public Array StatusOptions => Enum.GetValues(typeof(WorkOrderStatus));
 
@@ -115,6 +123,8 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
             _selectedStatus = value;
             CurrentWorkOrder.Status = value;
+            OnPropertyChanged(nameof(CurrentStatusDisplay));
+            OnPropertyChanged(nameof(StatusBrush));
             OnPropertyChanged();
             OpenInspectionCommand.RaiseCanExecuteChanged();
         }
@@ -135,6 +145,11 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         GenerateReceiptCommand = new RelayCommand(GenerateReceipt);
         OpenInspectionCommand = new RelayCommand(OpenInspection, () => CanOpenInspection);
         LineItems.CollectionChanged += LineItems_CollectionChanged;
+        SetOpenCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Open));
+        SetInProgressCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.InProgress));
+        SetWaitingApprovalCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.WaitingApproval));
+        SetCompletedCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Completed));
+        SetPaidCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Paid));
 
         LoadCustomers();
         LoadVehicles();
@@ -402,4 +417,40 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             LoadWorkOrders();
         }
     }
+    private void SetStatus(WorkOrderStatus status)
+    {
+        SelectedStatus = status;
+        CurrentWorkOrder.Status = status;
+        OnPropertyChanged(nameof(CurrentWorkOrder));
+        OpenInspectionCommand.RaiseCanExecuteChanged();
+    }
+    public Brush StatusBrush =>
+    SelectedStatus switch
+    {
+        WorkOrderStatus.Draft => Brushes.Gray,
+        WorkOrderStatus.Open => Brushes.DodgerBlue,
+        WorkOrderStatus.InProgress => Brushes.DarkOrange,
+        WorkOrderStatus.WaitingApproval => Brushes.Goldenrod,
+        WorkOrderStatus.Completed => Brushes.Green,
+        WorkOrderStatus.Paid => Brushes.DarkGreen,
+        WorkOrderStatus.Closed => Brushes.Black,
+        WorkOrderStatus.Cancelled => Brushes.Red,
+        _ => Brushes.Gray
+    };
+    public bool CanOpen =>
+    SelectedStatus == WorkOrderStatus.Draft;
+
+    public bool CanStartWork =>
+        SelectedStatus == WorkOrderStatus.Open;
+
+    public bool CanRequestApproval =>
+        SelectedStatus == WorkOrderStatus.InProgress;
+
+    public bool CanComplete =>
+        SelectedStatus == WorkOrderStatus.InProgress ||
+        SelectedStatus == WorkOrderStatus.WaitingApproval;
+
+    public bool CanMarkPaid =>
+        SelectedStatus == WorkOrderStatus.Completed;
+
 }
