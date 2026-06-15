@@ -192,6 +192,9 @@ namespace AutoShop.Data.Migrations
                     b.Property<string>("City")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("DefaultLaborRate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DefaultThankYouMessage")
                         .HasColumnType("TEXT");
 
@@ -243,6 +246,7 @@ namespace AutoShop.Data.Migrations
                         new
                         {
                             Id = 1,
+                            DefaultLaborRate = 0m,
                             InvoicePrefix = "WO-",
                             NextInvoiceNumber = 1,
                             ReceiptFooterText = "Thank you for your business.",
@@ -375,19 +379,16 @@ namespace AutoShop.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsPart")
+                    b.Property<int>("ItemType")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("LaborHours")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("LaborRate")
-                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("LineTotal")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("PartsCost")
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("UnitPrice")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("WorkOrderId")

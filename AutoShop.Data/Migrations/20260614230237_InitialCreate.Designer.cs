@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoShop.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260611064425_InitialCreate")]
+    [Migration("20260614230237_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -19,6 +19,44 @@ namespace AutoShop.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+
+            modelBuilder.Entity("AutoShop.Core.Entities.AppUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
 
             modelBuilder.Entity("AutoShop.Core.Entities.Appointment", b =>
                 {
@@ -137,6 +175,87 @@ namespace AutoShop.Data.Migrations
                     b.HasIndex("WorkOrderId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("AutoShop.Core.Entities.ShopSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AddressLine1")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AddressLine2")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BusinessHours")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("City")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DefaultLaborRate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DefaultThankYouMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InvoicePrefix")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LogoPath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NextInvoiceNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReceiptFooterText")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ShopName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("State")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TaxId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TaxRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ShopSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DefaultLaborRate = 0m,
+                            InvoicePrefix = "WO-",
+                            NextInvoiceNumber = 1,
+                            ReceiptFooterText = "Thank you for your business.",
+                            ShopName = "AutoShop",
+                            TaxRate = 0m
+                        });
                 });
 
             modelBuilder.Entity("AutoShop.Core.Entities.Vehicle", b =>
@@ -263,19 +382,16 @@ namespace AutoShop.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsPart")
+                    b.Property<int>("ItemType")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("LaborHours")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("LaborRate")
-                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("LineTotal")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("PartsCost")
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("UnitPrice")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("WorkOrderId")

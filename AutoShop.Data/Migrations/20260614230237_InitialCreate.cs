@@ -34,6 +34,55 @@ namespace AutoShop.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ShopSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ShopName = table.Column<string>(type: "TEXT", nullable: false),
+                    LogoPath = table.Column<string>(type: "TEXT", nullable: true),
+                    AddressLine1 = table.Column<string>(type: "TEXT", nullable: true),
+                    AddressLine2 = table.Column<string>(type: "TEXT", nullable: true),
+                    City = table.Column<string>(type: "TEXT", nullable: true),
+                    State = table.Column<string>(type: "TEXT", nullable: true),
+                    PostalCode = table.Column<string>(type: "TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", nullable: true),
+                    Email = table.Column<string>(type: "TEXT", nullable: true),
+                    Website = table.Column<string>(type: "TEXT", nullable: true),
+                    TaxId = table.Column<string>(type: "TEXT", nullable: true),
+                    TaxRate = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    ReceiptFooterText = table.Column<string>(type: "TEXT", nullable: true),
+                    InvoicePrefix = table.Column<string>(type: "TEXT", nullable: true),
+                    NextInvoiceNumber = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 1),
+                    BusinessHours = table.Column<string>(type: "TEXT", nullable: true),
+                    DefaultThankYouMessage = table.Column<string>(type: "TEXT", nullable: true),
+                    DefaultLaborRate = table.Column<decimal>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShopSettings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false),
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
+                    Role = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    LastLoginAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Vehicles",
                 columns: table => new
                 {
@@ -170,12 +219,11 @@ namespace AutoShop.Data.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     WorkOrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ItemType = table.Column<int>(type: "INTEGER", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
-                    LaborHours = table.Column<decimal>(type: "TEXT", nullable: false),
-                    LaborRate = table.Column<decimal>(type: "TEXT", nullable: false),
-                    PartsCost = table.Column<decimal>(type: "TEXT", nullable: false),
-                    LineTotal = table.Column<decimal>(type: "TEXT", nullable: false),
-                    IsPart = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "TEXT", nullable: false),
+                    LineTotal = table.Column<decimal>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -187,6 +235,11 @@ namespace AutoShop.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.InsertData(
+                table: "ShopSettings",
+                columns: new[] { "Id", "AddressLine1", "AddressLine2", "BusinessHours", "City", "DefaultLaborRate", "DefaultThankYouMessage", "Email", "InvoicePrefix", "LogoPath", "NextInvoiceNumber", "Phone", "PostalCode", "ReceiptFooterText", "ShopName", "State", "TaxId", "TaxRate", "Website" },
+                values: new object[] { 1, null, null, null, null, 0m, null, null, "WO-", null, 1, null, null, "Thank you for your business.", "AutoShop", null, null, 0m, null });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Appointments_CustomerId",
@@ -212,6 +265,12 @@ namespace AutoShop.Data.Migrations
                 name: "IX_Payments_WorkOrderId",
                 table: "Payments",
                 column: "WorkOrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserName",
+                table: "Users",
+                column: "UserName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_CustomerId",
@@ -253,6 +312,12 @@ namespace AutoShop.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "ShopSettings");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "WorkOrderLineItems");

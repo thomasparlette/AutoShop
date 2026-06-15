@@ -8,12 +8,13 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+
 namespace AutoShop.MainApp.ViewModels;
 
 public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 {
     private readonly WorkOrderService _workOrderService = new();
-    
+
     public ObservableCollection<WorkOrder> WorkOrders { get; } = new();
     public ObservableCollection<Customer> Customers { get; } = new();
     public ObservableCollection<Vehicle> Vehicles { get; } = new();
@@ -98,6 +99,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public ICommand AddPartLineCommand { get; }
     public ICommand RemoveLineCommand { get; }
     public ICommand GenerateReceiptCommand { get; }
+
     public WorkOrderViewModel()
     {
         NewCommand = new RelayCommand(NewWorkOrder);
@@ -109,8 +111,9 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         RemoveLineCommand = new RelayCommand(RemoveSelectedLine);
         GenerateReceiptCommand = new RelayCommand(GenerateReceipt);
 
-        LoadCustomers();
         LineItems.CollectionChanged += LineItems_CollectionChanged;
+
+        LoadCustomers();
         LoadVehicles();
         LoadWorkOrders();
         NewWorkOrder();
@@ -146,7 +149,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         }
     }
 
-    private void LoadWorkOrders() 
+    private void LoadWorkOrders()
     {
         WorkOrders.Clear();
 
@@ -180,6 +183,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         };
 
         LineItems.Clear();
+
         foreach (var item in workOrder.LineItems)
         {
             LineItems.Add(new WorkOrderLineItem
@@ -187,9 +191,10 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
                 Id = item.Id,
                 WorkOrderId = item.WorkOrderId,
                 Description = item.Description,
-                PartsCost = item.PartsCost,
-                LineTotal = item.LineTotal,
-                IsPart = item.IsPart
+                ItemType = item.ItemType,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                LineTotal = item.LineTotal
             });
         }
 
@@ -200,6 +205,8 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         }
 
         SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
+
+        RecalculateCurrentTotals();
     }
 
     private void NewWorkOrder()
@@ -207,11 +214,13 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         SelectedWorkOrder = null;
         SelectedCustomer = null;
         SelectedVehicle = null;
+
         CurrentWorkOrder = new WorkOrder
         {
             Status = WorkOrderStatus.Draft,
             CreatedAt = DateTime.Now
         };
+
         LineItems.Clear();
         RecalculateCurrentTotals();
     }
@@ -253,11 +262,6 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             UnitPrice = GetDefaultLaborRate()
         });
     }
-    private decimal GetDefaultLaborRate()
-    {
-        using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
-        return db.ShopSettings.FirstOrDefault()?.DefaultLaborRate ?? 0m;
-    }
 
     private void AddPartLine()
     {
@@ -276,6 +280,12 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         {
             LineItems.RemoveAt(LineItems.Count - 1);
         }
+    }
+
+    private decimal GetDefaultLaborRate()
+    {
+        using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
+        return db.ShopSettings.FirstOrDefault()?.DefaultLaborRate ?? 0m;
     }
 
     public Array StatusOptions => Enum.GetValues(typeof(WorkOrderStatus));
@@ -314,14 +324,16 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         RecalculateCurrentTotals();
     }
+
     private void LineItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         RecalculateCurrentTotals();
     }
+
     private void RecalculateCurrentTotals()
     {
-        CurrentWorkOrder.LaborTotal = LineItems.Where(x => !x.IsPart).Sum(x => x.LineTotal);
-        CurrentWorkOrder.PartsTotal = LineItems.Where(x => x.IsPart).Sum(x => x.LineTotal);
+        CurrentWorkOrder.LaborTotal = LineItems.Where(x => x.ItemType == WorkOrderLineItemType.Labor).Sum(x => x.LineTotal);
+        CurrentWorkOrder.PartsTotal = LineItems.Where(x => x.ItemType == WorkOrderLineItemType.Part).Sum(x => x.LineTotal);
         CurrentWorkOrder.GrandTotal = CurrentWorkOrder.LaborTotal + CurrentWorkOrder.PartsTotal - CurrentWorkOrder.DiscountTotal + CurrentWorkOrder.TaxTotal;
         CurrentWorkOrder.BalanceDue = CurrentWorkOrder.GrandTotal - CurrentWorkOrder.AmountPaid;
 
@@ -333,9 +345,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         if (CurrentWorkOrder.Id == 0)
             return;
 
-        var service = new WorkOrderService();
-        var workOrder = service.GetWorkOrderById(CurrentWorkOrder.Id);
-
+        var workOrder = _workOrderService.GetWorkOrderById(CurrentWorkOrder.Id);
         if (workOrder == null)
             return;
 

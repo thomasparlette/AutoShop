@@ -60,6 +60,18 @@ public class WorkOrderService
             .ToList();
     }
 
+    public WorkOrder? GetWorkOrderById(int id)
+    {
+        using var db = CreateContext();
+
+        return db.WorkOrders
+            .Include(w => w.Customer)
+            .Include(w => w.Vehicle)
+            .Include(w => w.LineItems)
+            .Include(w => w.Payments)
+            .FirstOrDefault(w => w.Id == id);
+    }
+
     public WorkOrder SaveWorkOrder(WorkOrder workOrder)
     {
         using var db = CreateContext();
@@ -79,7 +91,7 @@ public class WorkOrderService
         {
             db.WorkOrders.Update(workOrder);
         }
-        CurrentWorkOrder.LineItems = LineItems.ToList();
+
         db.SaveChanges();
         return workOrder;
     }
@@ -129,37 +141,5 @@ public class WorkOrderService
     {
         var factory = new AppDbContextFactory();
         return factory.CreateDbContext(Array.Empty<string>());
-    }
-    public WorkOrder? GetWorkOrderById(int id)
-    {
-        using var db = CreateContext();
-
-        return db.WorkOrders
-            .Include(w => w.Customer)
-            .Include(w => w.Vehicle)
-            .Include(w => w.LineItems)
-            .Include(w => w.Payments)
-            .FirstOrDefault(w => w.Id == id);
-    }
-    private void AddLaborLine()
-    {
-        LineItems.Add(new WorkOrderLineItem
-        {
-            ItemType = WorkOrderLineItemType.Labor,
-            Description = "Labor",
-            Quantity = 1,
-            UnitPrice = 0
-        });
-    }
-
-    private void AddPartLine()
-    {
-        LineItems.Add(new WorkOrderLineItem
-        {
-            ItemType = WorkOrderLineItemType.Part,
-            Description = "Part",
-            Quantity = 1,
-            UnitPrice = 0
-        });
     }
 }

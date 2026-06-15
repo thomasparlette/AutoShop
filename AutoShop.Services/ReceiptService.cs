@@ -31,7 +31,6 @@ public class ReceiptService
         sb.AppendLine();
 
         sb.AppendLine("LINE ITEMS");
-        sb.AppendLine("LINE ITEMS");
         foreach (var item in workOrder.LineItems)
         {
             sb.AppendLine($"{item.ItemType,-6} {item.Description,-25} Qty:{item.Quantity:N2}  Unit:{item.UnitPrice:C}  Total:{item.LineTotal:C}");
