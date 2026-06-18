@@ -38,7 +38,23 @@
                     <DataGridTextColumn Header="Customer" Binding="{Binding Customer.FullName}" Width="2*" />
                     <DataGridTextColumn Header="Vehicle" Binding="{Binding Vehicle.Make}" Width="*" />
                     <DataGridTextColumn Header="Model" Binding="{Binding Vehicle.Model}" Width="*" />
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*" />
+                  <DataGridTemplateColumn Header="Status"
+                      Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <Border Background="{Binding Status,
+                                Converter={StaticResource WorkOrderStatusToBrushConverter}}"
+                                CornerRadius="4"
+                                Padding="4">
+                          <TextBlock Text="{Binding StatusDisplay}"
+                                     Foreground="White"
+                                     FontWeight="Bold"
+                                     HorizontalAlignment="Center"/>
+                        </Border>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+
+                  </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Total" Binding="{Binding GrandTotal}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>

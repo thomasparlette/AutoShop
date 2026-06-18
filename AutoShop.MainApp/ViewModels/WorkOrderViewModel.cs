@@ -20,9 +20,18 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public ObservableCollection<Customer> Customers { get; } = new();
     public ObservableCollection<Vehicle> Vehicles { get; } = new();
     public ObservableCollection<WorkOrderLineItem> LineItems { get; } = new();
-    public string CurrentStatusDisplay =>
-    SelectedStatus.ToString().Replace("InProgress", "In Progress")
-                             .Replace("WaitingApproval", "Waiting Approval");
+    public string CurrentStatusDisplay => SelectedStatus switch
+    {
+        WorkOrderStatus.Draft => "DRAFT",
+        WorkOrderStatus.Open => "OPEN",
+        WorkOrderStatus.InProgress => "IN PROGRESS",
+        WorkOrderStatus.WaitingApproval => "WAITING APPROVAL",
+        WorkOrderStatus.Completed => "COMPLETED",
+        WorkOrderStatus.Paid => "PAID",
+        WorkOrderStatus.Closed => "CLOSED",
+        WorkOrderStatus.Cancelled => "CANCELLED",
+        _ => SelectedStatus.ToString().ToUpperInvariant()
+    };
 
     private WorkOrder? _selectedWorkOrder;
     public WorkOrder? SelectedWorkOrder
@@ -103,12 +112,12 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public ICommand AddPartLineCommand { get; }
     public ICommand RemoveLineCommand { get; }
     public ICommand GenerateReceiptCommand { get; }
-    public ICommand SetOpenCommand { get; }
-    public ICommand SetInProgressCommand { get; }
-    public ICommand SetWaitingApprovalCommand { get; }
-    public ICommand SetCompletedCommand { get; }
-    public ICommand SetPaidCommand { get; }
     public RelayCommand OpenInspectionCommand { get; }
+    public RelayCommand SetOpenCommand { get; }
+    public RelayCommand SetInProgressCommand { get; }
+    public RelayCommand SetWaitingApprovalCommand { get; }
+    public RelayCommand SetCompletedCommand { get; }
+    public RelayCommand SetPaidCommand { get; }
     public Array StatusOptions => Enum.GetValues(typeof(WorkOrderStatus));
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -126,13 +135,9 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             OnPropertyChanged(nameof(CurrentStatusDisplay));
             OnPropertyChanged(nameof(StatusBrush));
             OnPropertyChanged();
-            OpenInspectionCommand.RaiseCanExecuteChanged();
+            RefreshWorkflowCommands();
         }
     }
-    public bool CanOpenInspection =>
-    SelectedStatus == WorkOrderStatus.Open ||
-    SelectedStatus == WorkOrderStatus.InProgress ||
-    SelectedStatus == WorkOrderStatus.WaitingApproval;
     public WorkOrderViewModel()
     {
         NewCommand = new RelayCommand(NewWorkOrder);
@@ -143,14 +148,13 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         AddPartLineCommand = new RelayCommand(AddPartLine);
         RemoveLineCommand = new RelayCommand(RemoveSelectedLine);
         GenerateReceiptCommand = new RelayCommand(GenerateReceipt);
-        OpenInspectionCommand = new RelayCommand(OpenInspection, () => CanOpenInspection);
         LineItems.CollectionChanged += LineItems_CollectionChanged;
-        SetOpenCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Open));
-        SetInProgressCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.InProgress));
-        SetWaitingApprovalCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.WaitingApproval));
-        SetCompletedCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Completed));
-        SetPaidCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Paid));
-
+        OpenInspectionCommand = new RelayCommand(OpenInspection, () => CanOpenInspection);
+        SetOpenCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Open), () => CanSetOpen);
+        SetInProgressCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.InProgress), () => CanSetInProgress);
+        SetWaitingApprovalCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.WaitingApproval), () => CanSetWaitingApproval);
+        SetCompletedCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Completed), () => CanSetCompleted);
+        SetPaidCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Paid), () => CanSetPaid);
         LoadCustomers();
         LoadVehicles();
         LoadWorkOrders();
@@ -422,10 +426,8 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         SelectedStatus = status;
         CurrentWorkOrder.Status = status;
         OnPropertyChanged(nameof(CurrentWorkOrder));
-        OpenInspectionCommand.RaiseCanExecuteChanged();
     }
-    public Brush StatusBrush =>
-    SelectedStatus switch
+    public Brush StatusBrush => SelectedStatus switch
     {
         WorkOrderStatus.Draft => Brushes.Gray,
         WorkOrderStatus.Open => Brushes.DodgerBlue,
@@ -452,5 +454,24 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
     public bool CanMarkPaid =>
         SelectedStatus == WorkOrderStatus.Completed;
+
+    public bool CanSetOpen => SelectedStatus == WorkOrderStatus.Draft;
+    public bool CanSetInProgress => SelectedStatus == WorkOrderStatus.Open;
+    public bool CanSetWaitingApproval => SelectedStatus == WorkOrderStatus.InProgress;
+    public bool CanSetCompleted => SelectedStatus == WorkOrderStatus.InProgress || SelectedStatus == WorkOrderStatus.WaitingApproval;
+    public bool CanSetPaid => SelectedStatus == WorkOrderStatus.Completed;
+    public bool CanOpenInspection =>
+        SelectedStatus == WorkOrderStatus.Open ||
+        SelectedStatus == WorkOrderStatus.InProgress ||
+        SelectedStatus == WorkOrderStatus.WaitingApproval;
+    private void RefreshWorkflowCommands()
+    {
+        OpenInspectionCommand.RaiseCanExecuteChanged();
+        SetOpenCommand.RaiseCanExecuteChanged();
+        SetInProgressCommand.RaiseCanExecuteChanged();
+        SetWaitingApprovalCommand.RaiseCanExecuteChanged();
+        SetCompletedCommand.RaiseCanExecuteChanged();
+        SetPaidCommand.RaiseCanExecuteChanged();
+    }
 
 }

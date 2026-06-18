@@ -35,5 +35,17 @@ namespace AutoShop.Core.Entities
         public WorkOrderInspection? Inspection { get; set; }
         public ICollection<WorkOrderLineItem> LineItems { get; set; } = new List<WorkOrderLineItem>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public string StatusDisplay => Status switch
+        {
+            WorkOrderStatus.Draft => "DRAFT",
+            WorkOrderStatus.Open => "OPEN",
+            WorkOrderStatus.InProgress => "IN PROGRESS",
+            WorkOrderStatus.WaitingApproval => "WAITING APPROVAL",
+            WorkOrderStatus.Completed => "COMPLETED",
+            WorkOrderStatus.Paid => "PAID",
+            WorkOrderStatus.Closed => "CLOSED",
+            WorkOrderStatus.Cancelled => "CANCELLED",
+            _ => Status.ToString()
+        };
     }
 }
