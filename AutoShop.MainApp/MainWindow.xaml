@@ -16,9 +16,16 @@
             <TabItem Header="Work Orders">
                 <views:WorkOrderView />
             </TabItem>
+            <TabItem Header="Technician Dashboard">
+                <views:TechnicianDashboardView />
+            </TabItem>
+            <TabItem x:Name="TechniciansTab" Header="Technicians">
+                <views:TechnicianManagementView />
+            </TabItem>
             <TabItem x:Name="SettingsTab" Header="Shop Settings">
                 <views:ShopSettingsView />
             </TabItem>
+            
         </TabControl>
     </Grid>
 </Window>

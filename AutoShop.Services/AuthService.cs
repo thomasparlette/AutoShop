@@ -38,8 +38,18 @@ public class AuthService
                 CreatedAt = DateTime.Now,
                 PasswordHash = HashPassword("Admin123!")
             };
+            var user = new AppUser
+            {
+                UserName = "tparlette",
+                DisplayName = "Thomas Parlette",
+                Role = UserRole.Standard,
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                PasswordHash = HashPassword("buckT123")
+            };
 
             db.Users.Add(admin);
+            db.Users.Add(user);
         }
 
         db.SaveChanges();

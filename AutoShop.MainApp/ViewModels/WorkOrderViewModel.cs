@@ -349,6 +349,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     {
         LoadCustomers();
         LoadVehicles();
+        LoadTechnicians();
         LoadWorkOrders();
     }
 

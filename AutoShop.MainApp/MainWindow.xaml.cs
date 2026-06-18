@@ -12,6 +12,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         SettingsTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        TechniciansTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
 
         MainTabs.SelectionChanged += MainTabs_SelectionChanged;
     }
