@@ -21,6 +21,7 @@ namespace AutoShop.Data
         public DbSet<ShopSettings> ShopSettings => Set<ShopSettings>();
         public DbSet<WorkOrderInspection> WorkOrderInspections => Set<WorkOrderInspection>();
         public DbSet<WorkOrderInspectionItem> WorkOrderInspectionItems => Set<WorkOrderInspectionItem>();
+        public DbSet<Technician> Technicians => Set<Technician>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -136,6 +137,16 @@ namespace AutoShop.Data
             modelBuilder.Entity<WorkOrderInspectionItem>()
                 .Property(i => i.Status)
                 .HasConversion<int>();
+            
+            modelBuilder.Entity<Technician>()
+                .HasIndex(t => new { t.LastName, t.FirstName });
+
+            modelBuilder.Entity<WorkOrder>()
+                .HasOne(w => w.Technician)
+                .WithMany()
+                .HasForeignKey(w => w.TechnicianId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
+       
     }
 }

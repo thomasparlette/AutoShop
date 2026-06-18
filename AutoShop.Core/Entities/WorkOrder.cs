@@ -47,5 +47,7 @@ namespace AutoShop.Core.Entities
             WorkOrderStatus.Cancelled => "CANCELLED",
             _ => Status.ToString()
         };
+        public int? TechnicianId { get; set; }
+        public Technician? Technician { get; set; }
     }
 }

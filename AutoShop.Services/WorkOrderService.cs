@@ -38,6 +38,7 @@ public class WorkOrderService
         var query = db.WorkOrders
             .Include(w => w.Customer)
             .Include(w => w.Vehicle)
+            .Include(w => w.Technician)
             .Include(w => w.LineItems)
             .Include(w => w.Payments)
             .Include(w => w.Inspection)
@@ -69,6 +70,7 @@ public class WorkOrderService
         return db.WorkOrders
             .Include(w => w.Customer)
             .Include(w => w.Vehicle)
+            .Include(w => w.Technician)
             .Include(w => w.LineItems)
             .Include(w => w.Payments)
             .Include(w => w.Inspection)
@@ -146,4 +148,15 @@ public class WorkOrderService
         var factory = new AppDbContextFactory();
         return factory.CreateDbContext(Array.Empty<string>());
     }
+    public List<Technician> GetTechnicians()
+    {
+        using var db = CreateContext();
+
+        return db.Technicians
+            .AsNoTracking()
+            .OrderBy(t => t.LastName)
+            .ThenBy(t => t.FirstName)
+            .ToList();
+    }
+
 }

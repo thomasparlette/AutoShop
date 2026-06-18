@@ -77,7 +77,11 @@
                               SelectedItem="{Binding SelectedVehicle, Mode=TwoWay}"
                               DisplayMemberPath="Model"
                               Margin="0,0,0,8" />
-
+                  <TextBlock Text="Technician" />
+                  <ComboBox ItemsSource="{Binding Technicians}"
+                            SelectedItem="{Binding SelectedTechnician, Mode=TwoWay}"
+                            DisplayMemberPath="FullName"
+                            Margin="0,0,0,8" />
                     <TextBlock Text="Status" />
                   <Border Background="{Binding StatusBrush}"
                           CornerRadius="5"

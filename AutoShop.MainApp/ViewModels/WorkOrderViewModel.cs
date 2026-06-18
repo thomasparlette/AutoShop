@@ -157,6 +157,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         SetPaidCommand = new RelayCommand(() => SetStatus(WorkOrderStatus.Paid), () => CanSetPaid);
         LoadCustomers();
         LoadVehicles();
+        LoadTechnicians();
         LoadWorkOrders();
         NewWorkOrder();
     }
@@ -222,6 +223,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             GrandTotal = workOrder.GrandTotal,
             AmountPaid = workOrder.AmountPaid,
             BalanceDue = workOrder.BalanceDue
+
         };
 
         SelectedStatus = workOrder.Status;
@@ -248,7 +250,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         }
 
         SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
-
+        SelectedTechnician = Technicians.FirstOrDefault(t => t.Id == workOrder.TechnicianId);
         RecalculateCurrentTotals();
     }
 
@@ -265,6 +267,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         };
 
         SelectedStatus = WorkOrderStatus.Draft;
+        SelectedTechnician = null;
 
         LineItems.Clear();
         RecalculateCurrentTotals();
@@ -280,6 +283,9 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         if (SelectedVehicle != null)
             CurrentWorkOrder.VehicleId = SelectedVehicle.Id;
+        
+        if (SelectedTechnician != null)
+            CurrentWorkOrder.TechnicianId = SelectedTechnician.Id;
 
         RecalculateCurrentTotals();
 
@@ -473,5 +479,30 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         SetCompletedCommand.RaiseCanExecuteChanged();
         SetPaidCommand.RaiseCanExecuteChanged();
     }
+    public ObservableCollection<Technician> Technicians { get; } = new();
 
+    private Technician? _selectedTechnician;
+    public Technician? SelectedTechnician
+    {
+        get => _selectedTechnician;
+        set
+        {
+            _selectedTechnician = value;
+            OnPropertyChanged();
+
+            if (value != null)
+            {
+                CurrentWorkOrder.TechnicianId = value.Id;
+            }
+        }
+    }
+    private void LoadTechnicians()
+    {
+        Technicians.Clear();
+
+        foreach (var tech in _workOrderService.GetTechnicians())
+        {
+            Technicians.Add(tech);
+        }
+    }
 }
