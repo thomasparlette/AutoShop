@@ -16,11 +16,11 @@
             <TabItem Header="Work Orders">
                 <views:WorkOrderView />
             </TabItem>
-            <TabItem Header="Technician Dashboard">
-                <views:TechnicianDashboardView />
+            <TabItem x:Name="UsersTab" Header="Users">
+                <views:UserManagementView />
             </TabItem>
-            <TabItem x:Name="TechniciansTab" Header="Technicians">
-                <views:TechnicianManagementView />
+            <TabItem x:Name="TechnicianDashboardTab" Header="Technician Dashboard">
+                <views:TechnicianDashboardView />
             </TabItem>
             <TabItem x:Name="SettingsTab" Header="Shop Settings">
                 <views:ShopSettingsView />

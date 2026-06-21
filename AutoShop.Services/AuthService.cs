@@ -27,29 +27,33 @@ public class AuthService
             });
         }
 
-        if (!db.Users.Any())
+        if (!db.Users.Any(u => u.UserName == "admin"))
         {
-            var admin = new AppUser
+            db.Users.Add(new AppUser
             {
                 UserName = "admin",
                 DisplayName = "Administrator",
-                Role = UserRole.Admin,
+                Role = UserRole.Admin | UserRole.Technician | UserRole.Finance,
                 IsActive = true,
                 CreatedAt = DateTime.Now,
-                PasswordHash = HashPassword("Admin123!")
-            };
-            var user = new AppUser
-            {
-                UserName = "tparlette",
-                DisplayName = "Thomas Parlette",
-                Role = UserRole.Standard,
-                IsActive = true,
-                CreatedAt = DateTime.Now,
-                PasswordHash = HashPassword("buckT123")
-            };
+                PasswordHash = PasswordHasher.HashPassword("Admin123!")
+            });
+        }
+        else
+        {
+            var admin = db.Users.First(u => u.UserName == "admin");
 
-            db.Users.Add(admin);
-            db.Users.Add(user);
+            admin.DisplayName = "Administrator";
+            admin.IsActive = true;
+
+            // force the correct roles for the admin account
+            admin.Role = UserRole.Admin | UserRole.Technician | UserRole.Finance;
+
+            // if the password hash is missing or from the old setup, reset it
+            if (string.IsNullOrWhiteSpace(admin.PasswordHash))
+            {
+                admin.PasswordHash = PasswordHasher.HashPassword("Admin123!");
+            }
         }
 
         db.SaveChanges();
@@ -66,7 +70,7 @@ public class AuthService
         if (user == null)
             return null;
 
-        if (!VerifyPassword(password, user.PasswordHash))
+        if (!PasswordHasher.VerifyPassword(password, user.PasswordHash))
             return null;
 
         user.LastLoginAt = DateTime.Now;
@@ -99,37 +103,6 @@ public class AuthService
         db.SaveChanges();
     }
 
-    private static string HashPassword(string password)
-    {
-        var salt = RandomNumberGenerator.GetBytes(16);
-        var pbkdf2 = Rfc2898DeriveBytes.Pbkdf2(
-            password,
-            salt,
-            100_000,
-            HashAlgorithmName.SHA256,
-            32);
-
-        return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(pbkdf2)}";
-    }
-
-    private static bool VerifyPassword(string password, string storedHash)
-    {
-        var parts = storedHash.Split(':');
-        if (parts.Length != 2)
-            return false;
-
-        var salt = Convert.FromBase64String(parts[0]);
-        var expectedHash = Convert.FromBase64String(parts[1]);
-
-        var actualHash = Rfc2898DeriveBytes.Pbkdf2(
-            password,
-            salt,
-            100_000,
-            HashAlgorithmName.SHA256,
-            32);
-
-        return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
-    }
 
     private static AppDbContext CreateContext()
     {

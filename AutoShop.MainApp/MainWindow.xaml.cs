@@ -1,4 +1,5 @@
-﻿using AutoShop.MainApp.Helpers;
+﻿using AutoShop.Core.Enums;
+using AutoShop.MainApp.Helpers;
 using AutoShop.MainApp.Services;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,8 +12,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        UsersTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         SettingsTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
-        TechniciansTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        TechnicianDashboardTab.Visibility = AppSession.HasRole(UserRole.Technician) || AppSession.IsAdmin
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
         MainTabs.SelectionChanged += MainTabs_SelectionChanged;
     }
