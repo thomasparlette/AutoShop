@@ -159,7 +159,7 @@ public class WorkOrderService
             .ToList();
     }
     public List<WorkOrder> GetServiceHistoryForVehicle(int vehicleId)
-{
+    {
         using var db = CreateContext();
 
         return db.WorkOrders

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoShop.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260615145941_AddInspectChecklist")]
-    partial class AddInspectChecklist
+    [Migration("20260622182016_AddMileageTracking")]
+    partial class AddMileageTracking
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -258,6 +258,36 @@ namespace AutoShop.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AutoShop.Core.Entities.Technician", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("LaborRate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastName", "FirstName");
+
+                    b.ToTable("Technicians");
+                });
+
             modelBuilder.Entity("AutoShop.Core.Entities.Vehicle", b =>
                 {
                     b.Property<int>("Id")
@@ -278,6 +308,9 @@ namespace AutoShop.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("Mileage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MileageOut")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Model")
@@ -341,6 +374,12 @@ namespace AutoShop.Data.Migrations
                     b.Property<decimal>("LaborTotal")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("MileageIn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MileageOut")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
 
@@ -353,6 +392,9 @@ namespace AutoShop.Data.Migrations
                     b.Property<decimal>("TaxTotal")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("TechnicianId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");
 
@@ -363,6 +405,8 @@ namespace AutoShop.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("TechnicianId");
 
                     b.HasIndex("VehicleId");
 
@@ -522,6 +566,11 @@ namespace AutoShop.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("AutoShop.Core.Entities.Technician", "Technician")
+                        .WithMany()
+                        .HasForeignKey("TechnicianId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("AutoShop.Core.Entities.Vehicle", "Vehicle")
                         .WithMany("WorkOrders")
                         .HasForeignKey("VehicleId")
@@ -529,6 +578,8 @@ namespace AutoShop.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Technician");
 
                     b.Navigation("Vehicle");
                 });

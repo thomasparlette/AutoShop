@@ -26,6 +26,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             OnPropertyChanged();
         }
     }
+    private int? MileageOutValue =>int.TryParse(MileageOutText, out var value) ? value : null;
 
     public ObservableCollection<WorkOrder> WorkOrders { get; } = new();
     public ObservableCollection<Customer> Customers { get; } = new();
@@ -261,7 +262,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
         SelectedTechnician = Technicians.FirstOrDefault(t => t.Id == workOrder.TechnicianId);
-        MileageOut = workOrder.Vehicle?.MileageOut;
+        MileageOutText = workOrder.MileageOut?.ToString() ?? string.Empty;
         RecalculateCurrentTotals();
     }
 
@@ -289,7 +290,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         CurrentWorkOrder.Status = SelectedStatus;
         CurrentWorkOrder.LineItems = LineItems.ToList();
         CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
-        CurrentWorkOrder.MileageOut = MileageOut;
+        CurrentWorkOrder.MileageOut = MileageOutValue;
         if (SelectedCustomer != null)
             CurrentWorkOrder.CustomerId = SelectedCustomer.Id;
 
@@ -453,13 +454,13 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     {
         if (status == WorkOrderStatus.Completed)
         {
-            if (SelectedVehicle != null && MileageOut.HasValue)
+            if (SelectedVehicle != null && MileageOutValue.HasValue)
             {
-                _vehicleService.UpdateMileageOut(SelectedVehicle.Id, MileageOut.Value);
+                _vehicleService.UpdateMileageOut(SelectedVehicle.Id, MileageOutValue.Value);
             }
 
             CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
-            CurrentWorkOrder.MileageOut = MileageOut;
+            CurrentWorkOrder.MileageOut = MileageOutValue;
         }
 
         SelectedStatus = status;

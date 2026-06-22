@@ -64,6 +64,23 @@ namespace AutoShop.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Technicians",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", nullable: false),
+                    Phone = table.Column<string>(type: "TEXT", nullable: true),
+                    Active = table.Column<bool>(type: "INTEGER", nullable: false),
+                    LaborRate = table.Column<decimal>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Technicians", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -97,6 +114,7 @@ namespace AutoShop.Data.Migrations
                     LicensePlate = table.Column<string>(type: "TEXT", nullable: true),
                     Color = table.Column<string>(type: "TEXT", nullable: true),
                     Mileage = table.Column<int>(type: "INTEGER", nullable: true),
+                    MileageOut = table.Column<int>(type: "INTEGER", nullable: true),
                     Notes = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -125,13 +143,16 @@ namespace AutoShop.Data.Migrations
                     Complaint = table.Column<string>(type: "TEXT", nullable: true),
                     Diagnosis = table.Column<string>(type: "TEXT", nullable: true),
                     Notes = table.Column<string>(type: "TEXT", nullable: true),
+                    MileageIn = table.Column<int>(type: "INTEGER", nullable: true),
+                    MileageOut = table.Column<int>(type: "INTEGER", nullable: true),
                     LaborTotal = table.Column<decimal>(type: "TEXT", nullable: false),
                     PartsTotal = table.Column<decimal>(type: "TEXT", nullable: false),
                     TaxTotal = table.Column<decimal>(type: "TEXT", nullable: false),
                     DiscountTotal = table.Column<decimal>(type: "TEXT", nullable: false),
                     GrandTotal = table.Column<decimal>(type: "TEXT", nullable: false),
                     AmountPaid = table.Column<decimal>(type: "TEXT", nullable: false),
-                    BalanceDue = table.Column<decimal>(type: "TEXT", nullable: false)
+                    BalanceDue = table.Column<decimal>(type: "TEXT", nullable: false),
+                    TechnicianId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -142,6 +163,12 @@ namespace AutoShop.Data.Migrations
                         principalTable: "Customers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WorkOrders_Technicians_TechnicianId",
+                        column: x => x.TechnicianId,
+                        principalTable: "Technicians",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_WorkOrders_Vehicles_VehicleId",
                         column: x => x.VehicleId,
@@ -213,6 +240,29 @@ namespace AutoShop.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "WorkOrderInspections",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    WorkOrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    TechnicianName = table.Column<string>(type: "TEXT", nullable: true),
+                    OverallNotes = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkOrderInspections", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkOrderInspections_WorkOrders_WorkOrderId",
+                        column: x => x.WorkOrderId,
+                        principalTable: "WorkOrders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WorkOrderLineItems",
                 columns: table => new
                 {
@@ -232,6 +282,30 @@ namespace AutoShop.Data.Migrations
                         name: "FK_WorkOrderLineItems_WorkOrders_WorkOrderId",
                         column: x => x.WorkOrderId,
                         principalTable: "WorkOrders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkOrderInspectionItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    WorkOrderInspectionId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Section = table.Column<string>(type: "TEXT", nullable: false),
+                    ItemName = table.Column<string>(type: "TEXT", nullable: false),
+                    SortOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    Notes = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkOrderInspectionItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkOrderInspectionItems_WorkOrderInspections_WorkOrderInspectionId",
+                        column: x => x.WorkOrderInspectionId,
+                        principalTable: "WorkOrderInspections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -267,6 +341,11 @@ namespace AutoShop.Data.Migrations
                 column: "WorkOrderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Technicians_LastName_FirstName",
+                table: "Technicians",
+                columns: new[] { "LastName", "FirstName" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_UserName",
                 table: "Users",
                 column: "UserName",
@@ -283,6 +362,17 @@ namespace AutoShop.Data.Migrations
                 column: "Vin");
 
             migrationBuilder.CreateIndex(
+                name: "IX_WorkOrderInspectionItems_WorkOrderInspectionId",
+                table: "WorkOrderInspectionItems",
+                column: "WorkOrderInspectionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkOrderInspections_WorkOrderId",
+                table: "WorkOrderInspections",
+                column: "WorkOrderId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WorkOrderLineItems_WorkOrderId",
                 table: "WorkOrderLineItems",
                 column: "WorkOrderId");
@@ -291,6 +381,11 @@ namespace AutoShop.Data.Migrations
                 name: "IX_WorkOrders_CustomerId",
                 table: "WorkOrders",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkOrders_TechnicianId",
+                table: "WorkOrders",
+                column: "TechnicianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkOrders_VehicleId",
@@ -320,10 +415,19 @@ namespace AutoShop.Data.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
+                name: "WorkOrderInspectionItems");
+
+            migrationBuilder.DropTable(
                 name: "WorkOrderLineItems");
 
             migrationBuilder.DropTable(
+                name: "WorkOrderInspections");
+
+            migrationBuilder.DropTable(
                 name: "WorkOrders");
+
+            migrationBuilder.DropTable(
+                name: "Technicians");
 
             migrationBuilder.DropTable(
                 name: "Vehicles");

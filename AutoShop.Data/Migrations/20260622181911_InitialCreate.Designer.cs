@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoShop.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260614230237_InitialCreate")]
+    [Migration("20260622181911_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -258,6 +258,36 @@ namespace AutoShop.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AutoShop.Core.Entities.Technician", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("LaborRate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastName", "FirstName");
+
+                    b.ToTable("Technicians");
+                });
+
             modelBuilder.Entity("AutoShop.Core.Entities.Vehicle", b =>
                 {
                     b.Property<int>("Id")
@@ -278,6 +308,9 @@ namespace AutoShop.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("Mileage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MileageOut")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Model")
@@ -341,6 +374,12 @@ namespace AutoShop.Data.Migrations
                     b.Property<decimal>("LaborTotal")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("MileageIn")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MileageOut")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
 
@@ -353,6 +392,9 @@ namespace AutoShop.Data.Migrations
                     b.Property<decimal>("TaxTotal")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("TechnicianId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");
 
@@ -364,12 +406,76 @@ namespace AutoShop.Data.Migrations
 
                     b.HasIndex("CustomerId");
 
+                    b.HasIndex("TechnicianId");
+
                     b.HasIndex("VehicleId");
 
                     b.HasIndex("WorkOrderNumber")
                         .IsUnique();
 
                     b.ToTable("WorkOrders");
+                });
+
+            modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderInspection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OverallNotes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TechnicianName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WorkOrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkOrderId")
+                        .IsUnique();
+
+                    b.ToTable("WorkOrderInspections");
+                });
+
+            modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderInspectionItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Section")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WorkOrderInspectionId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkOrderInspectionId");
+
+                    b.ToTable("WorkOrderInspectionItems");
                 });
 
             modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderLineItem", b =>
@@ -460,6 +566,11 @@ namespace AutoShop.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("AutoShop.Core.Entities.Technician", "Technician")
+                        .WithMany()
+                        .HasForeignKey("TechnicianId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("AutoShop.Core.Entities.Vehicle", "Vehicle")
                         .WithMany("WorkOrders")
                         .HasForeignKey("VehicleId")
@@ -468,7 +579,31 @@ namespace AutoShop.Data.Migrations
 
                     b.Navigation("Customer");
 
+                    b.Navigation("Technician");
+
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderInspection", b =>
+                {
+                    b.HasOne("AutoShop.Core.Entities.WorkOrder", "WorkOrder")
+                        .WithOne("Inspection")
+                        .HasForeignKey("AutoShop.Core.Entities.WorkOrderInspection", "WorkOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkOrder");
+                });
+
+            modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderInspectionItem", b =>
+                {
+                    b.HasOne("AutoShop.Core.Entities.WorkOrderInspection", "WorkOrderInspection")
+                        .WithMany("Items")
+                        .HasForeignKey("WorkOrderInspectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkOrderInspection");
                 });
 
             modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderLineItem", b =>
@@ -500,9 +635,16 @@ namespace AutoShop.Data.Migrations
 
             modelBuilder.Entity("AutoShop.Core.Entities.WorkOrder", b =>
                 {
+                    b.Navigation("Inspection");
+
                     b.Navigation("LineItems");
 
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("AutoShop.Core.Entities.WorkOrderInspection", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

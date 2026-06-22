@@ -282,7 +282,7 @@ public class InvoicePrintService
             Cell(workOrder.Vehicle?.Vin ?? string.Empty),
             Cell(workOrder.Vehicle?.LicensePlate ?? string.Empty),
             Cell(workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty),
-            Cell(workOrder.Vehicle?.MileageOut?.ToString() ?? string.Empty)
+            Cell(workOrder.MileageOut?.ToString() ?? string.Empty),
         }
         });
 
