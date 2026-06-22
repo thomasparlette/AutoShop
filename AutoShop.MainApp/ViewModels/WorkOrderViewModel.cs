@@ -396,10 +396,19 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         var workOrder = _workOrderService.GetWorkOrderById(CurrentWorkOrder.Id);
         if (workOrder == null)
+        {
+            MessageBox.Show("Could not load the work order for printing.");
             return;
+        }
 
         var receiptViewModel = new ReceiptViewModel();
         receiptViewModel.LoadReceipt(workOrder);
+
+        if (receiptViewModel.PreviewDocument == null)
+        {
+            MessageBox.Show("The invoice document could not be generated.");
+            return;
+        }
 
         var receiptWindow = new AutoShop.MainApp.Views.ReceiptWindow(receiptViewModel);
         receiptWindow.ShowDialog();

@@ -1,4 +1,4 @@
-﻿using AutoShop.Services;
+﻿using AutoShop.MainApp.Services;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Documents;
@@ -7,7 +7,7 @@ namespace AutoShop.MainApp.ViewModels;
 
 public class ReceiptViewModel : INotifyPropertyChanged
 {
-    private readonly ReceiptService _receiptService = new();
+    private readonly InvoicePrintService _invoicePrintService = new();
 
     private FlowDocument? _previewDocument;
     public FlowDocument? PreviewDocument
@@ -33,8 +33,8 @@ public class ReceiptViewModel : INotifyPropertyChanged
 
     public void LoadReceipt(AutoShop.Core.Entities.WorkOrder workOrder)
     {
-        PreviewDocument = _receiptService.BuildInvoiceDocument(workOrder);
-        DocumentTitle = _receiptService.GetDocumentTitle(workOrder);
+        PreviewDocument = _invoicePrintService.BuildInvoiceDocument(workOrder);
+        DocumentTitle = _invoicePrintService.GetDocumentTitle(workOrder);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
