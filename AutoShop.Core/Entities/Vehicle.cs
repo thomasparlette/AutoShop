@@ -20,6 +20,7 @@ namespace AutoShop.Core.Entities
         public string? LicensePlate { get; set; }
         public string? Color { get; set; }
         public int? Mileage { get; set; }
+        public int? MileageOut { get; set; }
 
         public string? Notes { get; set; }
 

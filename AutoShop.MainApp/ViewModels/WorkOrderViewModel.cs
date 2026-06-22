@@ -15,6 +15,17 @@ namespace AutoShop.MainApp.ViewModels;
 public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 {
     private readonly WorkOrderService _workOrderService = new();
+    private readonly VehicleService _vehicleService = new();
+    private string _mileageOutText = string.Empty;
+    public string MileageOutText
+    {
+        get => _mileageOutText;
+        set
+        {
+            _mileageOutText = value;
+            OnPropertyChanged();
+        }
+    }
 
     public ObservableCollection<WorkOrder> WorkOrders { get; } = new();
     public ObservableCollection<Customer> Customers { get; } = new();
@@ -118,8 +129,6 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     public RelayCommand SetWaitingApprovalCommand { get; }
     public RelayCommand SetCompletedCommand { get; }
     public RelayCommand SetPaidCommand { get; }
-    public Array StatusOptions => Enum.GetValues(typeof(WorkOrderStatus));
-
     public event PropertyChangedEventHandler? PropertyChanged;
     private WorkOrderStatus _selectedStatus;
     public WorkOrderStatus SelectedStatus
@@ -222,7 +231,8 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             DiscountTotal = workOrder.DiscountTotal,
             GrandTotal = workOrder.GrandTotal,
             AmountPaid = workOrder.AmountPaid,
-            BalanceDue = workOrder.BalanceDue
+            BalanceDue = workOrder.BalanceDue,
+            MileageOut = workOrder.MileageOut
 
         };
 
@@ -251,6 +261,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
         SelectedTechnician = Technicians.FirstOrDefault(t => t.Id == workOrder.TechnicianId);
+        MileageOut = workOrder.Vehicle?.MileageOut;
         RecalculateCurrentTotals();
     }
 
@@ -268,7 +279,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         SelectedStatus = WorkOrderStatus.Draft;
         SelectedTechnician = null;
-
+        MileageOutText = string.Empty;
         LineItems.Clear();
         RecalculateCurrentTotals();
     }
@@ -277,7 +288,8 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     {
         CurrentWorkOrder.Status = SelectedStatus;
         CurrentWorkOrder.LineItems = LineItems.ToList();
-
+        CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
+        CurrentWorkOrder.MileageOut = MileageOut;
         if (SelectedCustomer != null)
             CurrentWorkOrder.CustomerId = SelectedCustomer.Id;
 
@@ -439,6 +451,17 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     }
     private void SetStatus(WorkOrderStatus status)
     {
+        if (status == WorkOrderStatus.Completed)
+        {
+            if (SelectedVehicle != null && MileageOut.HasValue)
+            {
+                _vehicleService.UpdateMileageOut(SelectedVehicle.Id, MileageOut.Value);
+            }
+
+            CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
+            CurrentWorkOrder.MileageOut = MileageOut;
+        }
+
         SelectedStatus = status;
         CurrentWorkOrder.Status = status;
         OnPropertyChanged(nameof(CurrentWorkOrder));
@@ -455,21 +478,6 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         WorkOrderStatus.Cancelled => Brushes.Red,
         _ => Brushes.Gray
     };
-    public bool CanOpen =>
-    SelectedStatus == WorkOrderStatus.Draft;
-
-    public bool CanStartWork =>
-        SelectedStatus == WorkOrderStatus.Open;
-
-    public bool CanRequestApproval =>
-        SelectedStatus == WorkOrderStatus.InProgress;
-
-    public bool CanComplete =>
-        SelectedStatus == WorkOrderStatus.InProgress ||
-        SelectedStatus == WorkOrderStatus.WaitingApproval;
-
-    public bool CanMarkPaid =>
-        SelectedStatus == WorkOrderStatus.Completed;
 
     public bool CanSetOpen => SelectedStatus == WorkOrderStatus.Draft;
     public bool CanSetInProgress => SelectedStatus == WorkOrderStatus.Open;
@@ -515,4 +523,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             Technicians.Add(tech);
         }
     }
+    
+
+
 }

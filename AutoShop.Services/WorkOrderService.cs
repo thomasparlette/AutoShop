@@ -158,5 +158,19 @@ public class WorkOrderService
             .ThenBy(t => t.FirstName)
             .ToList();
     }
+    public List<WorkOrder> GetServiceHistoryForVehicle(int vehicleId)
+{
+        using var db = CreateContext();
+
+        return db.WorkOrders
+            .Include(w => w.Customer)
+            .Include(w => w.Vehicle)
+            .Include(w => w.Technician)
+            .Include(w => w.LineItems)
+            .Where(w => w.VehicleId == vehicleId && w.Status != WorkOrderStatus.Draft)
+            .OrderByDescending(w => w.CreatedAt)
+            .AsNoTracking()
+            .ToList();
+    }
 
 }

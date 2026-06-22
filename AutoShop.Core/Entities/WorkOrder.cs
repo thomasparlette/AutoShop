@@ -24,7 +24,8 @@ namespace AutoShop.Core.Entities
         public string? Complaint { get; set; }
         public string? Diagnosis { get; set; }
         public string? Notes { get; set; }
-
+        public int? MileageIn { get; set; }
+        public int? MileageOut { get; set; }
         public decimal LaborTotal { get; set; }
         public decimal PartsTotal { get; set; }
         public decimal TaxTotal { get; set; }

@@ -79,4 +79,16 @@ public class VehicleService
         var factory = new AppDbContextFactory();
         return factory.CreateDbContext(Array.Empty<string>());
     }
+    public void UpdateMileageOut(int vehicleId, int mileageOut)
+    {
+        using var db = CreateContext();
+
+        var vehicle = db.Vehicles.FirstOrDefault(v => v.Id == vehicleId);
+        if (vehicle == null)
+            return;
+
+        vehicle.MileageOut = mileageOut;
+        db.SaveChanges();
+    }
+
 }

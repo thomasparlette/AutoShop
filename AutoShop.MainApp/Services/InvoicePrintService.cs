@@ -36,16 +36,52 @@ public class InvoicePrintService
 
         var doc = CreateBaseDocument();
 
-        AppendInvoiceCopy(doc, safeWorkOrder, shop, internalCopy: true);
+        BuildCopy(doc, safeWorkOrder, shop, internalCopy: true);
         AddPageBreak(doc);
-        AppendChecklistCopy(doc, safeWorkOrder, shop, internalCopy: true);
-
-        AddPageBreak(doc);
-        AppendInvoiceCopy(doc, safeWorkOrder, shop, internalCopy: false);
-        AddPageBreak(doc);
-        AppendChecklistCopy(doc, safeWorkOrder, shop, internalCopy: false);
+        BuildCopy(doc, safeWorkOrder, shop, internalCopy: false);
 
         return doc;
+    }
+
+    private static void BuildCopy(FlowDocument doc, WorkOrder workOrder, ShopSettings shop, bool internalCopy)
+    {
+        var docKind = IsReceipt(workOrder) ? "RECEIPT" : "QUOTATION";
+        var copyLabel = internalCopy ? "INTERNAL COPY" : "CUSTOMER COPY";
+
+        var orderedItems = GetOrderedLineItems(workOrder);
+        var itemPages = ChunkByVariable(orderedItems, 30, 45).ToList();
+        if (itemPages.Count == 0)
+        {
+            itemPages.Add(new List<WorkOrderLineItem>());
+        }
+
+        var totalPagesForThisCopy = itemPages.Count + 1; // checklist page is the final page
+
+        for (int i = 0; i < itemPages.Count; i++)
+        {
+            var isFirstPage = i == 0;
+            var isLastItemPage = i == itemPages.Count - 1;
+
+            AppendInvoiceItemPage(
+                doc,
+                workOrder,
+                shop,
+                docKind,
+                copyLabel,
+                itemPages[i],
+                i + 1,
+                totalPagesForThisCopy,
+                isFirstPage,
+                isLastItemPage);
+
+            if (!isLastItemPage)
+            {
+                AddPageBreak(doc);
+            }
+        }
+
+        AddPageBreak(doc);
+        AppendChecklistPage(doc, workOrder, shop, copyLabel, itemPages.Count + 1, totalPagesForThisCopy);
     }
 
     private static FlowDocument CreateBaseDocument()
@@ -53,40 +89,12 @@ public class InvoicePrintService
         return new FlowDocument
         {
             FontFamily = new FontFamily("Segoe UI"),
-            FontSize = 10.5,
+            FontSize = 8.75,
             PageWidth = 816,
             PageHeight = 1056,
-            PagePadding = new Thickness(20),
+            PagePadding = new Thickness(12),
             ColumnWidth = double.PositiveInfinity
         };
-    }
-
-    private static void AppendInvoiceCopy(FlowDocument doc, WorkOrder workOrder, ShopSettings shop, bool internalCopy)
-    {
-        var docKind = IsReceipt(workOrder) ? "RECEIPT" : "QUOTATION";
-        var copyLabel = internalCopy ? "INTERNAL COPY" : "CUSTOMER COPY";
-
-        AddHeader(doc, shop, docKind, copyLabel);
-        AddCentered(doc, docKind, 14, true);
-        AddCentered(doc, copyLabel, 11, true);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
-
-        AddCustomerAndInvoiceInfo(doc, workOrder, shop);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
-
-        AddVehicleTable(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
-
-        AddLineItemsTable(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
-
-        AddNotesAndTotalsSection(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 6, 0, 6) });
-
-        AddAuthorizationBlock(doc);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 6, 0, 6) });
-
-        AddCentered(doc, $"{docKind} • {copyLabel}", 11, true);
     }
 
     private static void AppendChecklistCopy(FlowDocument doc, WorkOrder workOrder, ShopSettings shop, bool internalCopy)
@@ -96,13 +104,13 @@ public class InvoicePrintService
         AddHeader(doc, shop, "VEHICLE INSPECTION", copyLabel);
         AddCentered(doc, "VEHICLE INSPECTION", 14, true);
         AddCentered(doc, copyLabel, 11, true);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
 
         AddInspectionMetaTable(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
 
         AddInspectionLegend(doc);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 4, 0, 4) });
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
 
         AddInspectionSections(doc, workOrder);
         doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 6, 0, 6) });
@@ -239,12 +247,13 @@ public class InvoicePrintService
     private static void AddVehicleTable(FlowDocument doc, WorkOrder workOrder)
     {
         var table = new Table { CellSpacing = 0 };
-        table.Columns.Add(new TableColumn { Width = new GridLength(60) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(120) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(120) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(185) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(100) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(100) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(55) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(200) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(95) });
 
         var rg = new TableRowGroup();
         table.RowGroups.Add(rg);
@@ -252,40 +261,42 @@ public class InvoicePrintService
         rg.Rows.Add(new TableRow
         {
             Cells =
-            {
-                Cell("YEAR", true),
-                Cell("MAKE", true),
-                Cell("MODEL", true),
-                Cell("VIN", true),
-                Cell("LICENSE", true),
-                Cell("MILEAGE", true)
-            }
+        {
+            Cell("YEAR", true),
+            Cell("MAKE", true),
+            Cell("MODEL", true),
+            Cell("VIN", true),
+            Cell("LICENSE", true),
+            Cell("MILEAGE IN", true),
+            Cell("MILEAGE OUT", true)
+        }
         });
 
         rg.Rows.Add(new TableRow
         {
             Cells =
-            {
-                Cell(workOrder.Vehicle?.Year?.ToString() ?? string.Empty),
-                Cell(workOrder.Vehicle?.Make ?? string.Empty),
-                Cell(workOrder.Vehicle?.Model ?? string.Empty),
-                Cell(workOrder.Vehicle?.Vin ?? string.Empty),
-                Cell(workOrder.Vehicle?.LicensePlate ?? string.Empty),
-                Cell(workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty)
-            }
+        {
+            Cell(workOrder.Vehicle?.Year?.ToString() ?? string.Empty),
+            Cell(workOrder.Vehicle?.Make ?? string.Empty),
+            Cell(workOrder.Vehicle?.Model ?? string.Empty),
+            Cell(workOrder.Vehicle?.Vin ?? string.Empty),
+            Cell(workOrder.Vehicle?.LicensePlate ?? string.Empty),
+            Cell(workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty),
+            Cell(workOrder.Vehicle?.MileageOut?.ToString() ?? string.Empty)
+        }
         });
 
         doc.Blocks.Add(table);
     }
-
-    private static void AddLineItemsTable(FlowDocument doc, WorkOrder workOrder)
+    private static void AddLineItemsTable(FlowDocument doc, IReadOnlyList<WorkOrderLineItem> items)
     {
         var table = new Table { CellSpacing = 0 };
+        table.TextAlignment = TextAlignment.Center;
         table.Columns.Add(new TableColumn { Width = new GridLength(70) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(330) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(390) });
         table.Columns.Add(new TableColumn { Width = new GridLength(55) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(85) });
+        table.Columns.Add(new TableColumn { Width = new GridLength(85) });
 
         var rg = new TableRowGroup();
         table.RowGroups.Add(rg);
@@ -293,27 +304,27 @@ public class InvoicePrintService
         rg.Rows.Add(new TableRow
         {
             Cells =
-            {
-                Cell("TYPE", true),
-                Cell("DESCRIPTION", true),
-                Cell("QTY", true),
-                Cell("UNIT", true),
-                Cell("TOTAL", true)
-            }
+        {
+            Cell("TYPE", true),
+            Cell("DESCRIPTION", true),
+            Cell("QTY", true),
+            Cell("UNIT", true),
+            Cell("TOTAL", true)
+        }
         });
 
-        foreach (var item in workOrder.LineItems ?? Enumerable.Empty<WorkOrderLineItem>())
+        foreach (var item in items)
         {
             rg.Rows.Add(new TableRow
             {
                 Cells =
-                {
-                    Cell(item.ItemType.ToString().ToUpperInvariant()),
-                    Cell(item.Description ?? string.Empty),
-                    Cell(item.Quantity.ToString("N2")),
-                    Cell(item.UnitPrice.ToString("C")),
-                    Cell(item.LineTotal.ToString("C"))
-                }
+            {
+                Cell(item.ItemType.ToString().ToUpperInvariant()),
+                Cell(item.Description ?? string.Empty),
+                Cell(item.Quantity.ToString("N2")),
+                Cell(item.UnitPrice.ToString("C")),
+                Cell(item.LineTotal.ToString("C"))
+            }
             });
         }
 
@@ -449,7 +460,8 @@ public class InvoicePrintService
         right.Blocks.Add(MetaParagraph("VEHICLE:", vehicleText));
         right.Blocks.Add(MetaParagraph("VIN:", workOrder.Vehicle?.Vin ?? string.Empty));
         right.Blocks.Add(MetaParagraph("LICENSE:", workOrder.Vehicle?.LicensePlate ?? string.Empty));
-        right.Blocks.Add(MetaParagraph("MILEAGE:", workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty));
+        right.Blocks.Add(MetaParagraph("MILEAGE IN:", workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty));
+        right.Blocks.Add(MetaParagraph("MILEAGE OUT:", workOrder.Vehicle?.MileageOut?.ToString() ?? string.Empty));
 
         rg.Rows.Add(new TableRow { Cells = { left, right } });
         doc.Blocks.Add(table);
@@ -540,7 +552,7 @@ public class InvoicePrintService
         }
         else
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
                 doc.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
         }
     }
@@ -590,19 +602,14 @@ public class InvoicePrintService
         {
             BorderBrush = Brushes.Black,
             BorderThickness = new Thickness(0.5),
-            Padding = new Thickness(6)
+            Padding = new Thickness(1)
         };
 
         cell.Blocks.Add(new Paragraph { Margin = new Thickness(0), Inlines = { new Run(text ?? string.Empty) } });
         return cell;
     }
 
-    private static TableCell Cell(
-        string text,
-        bool bold = false,
-        TextAlignment align = TextAlignment.Left,
-        Brush? background = null,
-        Brush? foreground = null)
+    private static TableCell Cell(string text,bool bold = false,TextAlignment align = TextAlignment.Left,Brush? background = null,Brush? foreground = null)
     {
         var p = new Paragraph
         {
@@ -727,37 +734,6 @@ public class InvoicePrintService
 
         doc.Blocks.Add(p);
     }
-
-    private static void AddSectionTitle(FlowDocument doc, string title)
-    {
-        var p = new Paragraph { Margin = new Thickness(0, 6, 0, 2) };
-        p.Inlines.Add(new Run(title)
-        {
-            FontWeight = FontWeights.Bold
-        });
-        doc.Blocks.Add(p);
-    }
-
-    private static void AddParagraph(FlowDocument doc, string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return;
-
-        var p = new Paragraph { Margin = new Thickness(0) };
-        p.Inlines.Add(new Run(text));
-        doc.Blocks.Add(p);
-    }
-
-    private static Paragraph CenterParagraph(string text)
-    {
-        return new Paragraph
-        {
-            Margin = new Thickness(0),
-            TextAlignment = TextAlignment.Center,
-            Inlines = { new Run(text) }
-        };
-    }
-
     private static Paragraph MetaParagraph(string label, string value)
     {
         var p = new Paragraph { Margin = new Thickness(0) };
@@ -777,5 +753,104 @@ public class InvoicePrintService
             Cell(value, false, TextAlignment.Right)
         }
         };
+    }
+    private static void AppendInvoiceItemPage(FlowDocument doc,WorkOrder workOrder,ShopSettings shop,string docKind,string copyLabel,IReadOnlyList<WorkOrderLineItem> pageItems,int pageNumber,int totalPages,bool isFirstPage,bool isLastItemPage)
+    {
+        if (isFirstPage)
+        {
+            AddHeader(doc, shop, docKind, copyLabel);
+            doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+            AddCustomerAndInvoiceInfo(doc, workOrder, shop);
+            doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+            AddVehicleTable(doc, workOrder);
+            doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+        }
+        else
+        {
+            AddCentered(doc, $"{docKind} - CONTINUED", 12, true);
+            AddCentered(doc, copyLabel, 10, true);
+            doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 4) });
+        }
+
+        AddLineItemsTable(doc, pageItems);
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+        if (isLastItemPage)
+        {
+            AddNotesAndTotalsSection(doc, workOrder);
+            doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+            AddAuthorizationBlock(doc);
+            doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+            AddCentered(doc, $"{docKind} • {copyLabel}", 11, true);
+        }
+
+        AddPageNumberFooter(doc, pageNumber, totalPages);
+    }
+    private static void AppendChecklistPage(FlowDocument doc,WorkOrder workOrder,ShopSettings shop,string copyLabel,int pageNumber,int totalPages)
+    {
+        AddHeader(doc, shop, "VEHICLE INSPECTION CHECKLIST", copyLabel);
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+        AddInspectionMetaTable(doc, workOrder);
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+        AddInspectionLegend(doc);
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+
+        AddInspectionSections(doc, workOrder);
+        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
+        AddCentered(doc, copyLabel, 11, true);
+
+        AddPageNumberFooter(doc, pageNumber, totalPages);
+    }
+    private static void AddPageNumberFooter(FlowDocument doc, int pageNumber, int totalPages)
+    {
+        doc.Blocks.Add(new Paragraph
+        {
+            Margin = new Thickness(6, 8, 6, 0),
+            TextAlignment = TextAlignment.Center,
+            Inlines =
+        {
+            new Run($"PAGE {pageNumber} OF {totalPages}")
+            {
+                FontSize = 9,
+                FontWeight = FontWeights.Bold
+            }
+        }
+        });
+    }
+    private static List<WorkOrderLineItem> GetOrderedLineItems(WorkOrder workOrder)
+    {
+        return (workOrder.LineItems ?? Enumerable.Empty<WorkOrderLineItem>())
+            .OrderBy(x => x.ItemType == WorkOrderLineItemType.Labor ? 1 : 0)
+            .ToList();
+    }
+    private static List<List<WorkOrderLineItem>> ChunkByVariable(List<WorkOrderLineItem> items,int firstPageSize,int continuationPageSize)
+    {
+        var result = new List<List<WorkOrderLineItem>>();
+
+        var index = 0;
+
+        if (items.Count > 0)
+        {
+            result.Add(items.Take(firstPageSize).ToList());
+            index = firstPageSize;
+        }
+
+        while (index < items.Count)
+        {
+            result.Add(items
+                .Skip(index)
+                .Take(continuationPageSize)
+                .ToList());
+
+            index += continuationPageSize;
+        }
+
+        return result;
     }
 }
