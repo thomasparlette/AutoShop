@@ -93,6 +93,7 @@
                         <Button Content="Save" Width="90" Margin="0,0,8,0" Command="{Binding SaveCommand}" />
                         <Button Content="Delete" Width="90" Margin="0,0,8,0" Command="{Binding DeleteCommand}" />
                         <Button Content="Clear" Width="90" Command="{Binding NewCommand}" />
+                        <Button Content="Service History" Width="110" Margin="0,0,8,0" Command="{Binding OpenServiceHistoryCommand}" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

@@ -9,6 +9,7 @@ namespace AutoShop.Services;
 
 public class AuthService
 {
+    private readonly TechnicianService _technicianService = new();
     public void EnsureDefaults()
     {
         using var db = CreateContext();
@@ -24,6 +25,7 @@ public class AuthService
                 NextInvoiceNumber = 1,
                 ReceiptFooterText = "Thank you for your business.",
                 DefaultLaborRate = 0m,
+                PartMarkupPercent = 35m
             });
         }
 
@@ -55,7 +57,7 @@ public class AuthService
                 admin.PasswordHash = PasswordHasher.HashPassword("Admin123!");
             }
         }
-
+        _technicianService.SyncTechniciansFromUsers();
         db.SaveChanges();
     }
 

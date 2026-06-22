@@ -19,6 +19,7 @@ public class ShopSettings
 
     public string? TaxId { get; set; }
     public decimal TaxRate { get; set; }
+    public decimal PartMarkupPercent { get; set; } = 35m;
 
     public string? ReceiptFooterText { get; set; }
     public string? InvoicePrefix { get; set; }

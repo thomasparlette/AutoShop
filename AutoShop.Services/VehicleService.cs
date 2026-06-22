@@ -1,4 +1,5 @@
 ﻿using AutoShop.Core.Entities;
+using AutoShop.Core.Enums;
 using AutoShop.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -90,5 +91,28 @@ public class VehicleService
         vehicle.MileageOut = mileageOut;
         db.SaveChanges();
     }
+    public Vehicle? GetVehicleById(int id)
+    {
+        using var db = CreateContext();
 
+        return db.Vehicles
+            .Include(v => v.Customer)
+            .AsNoTracking()
+            .FirstOrDefault(v => v.Id == id);
+    }
+
+    public List<WorkOrder> GetServiceHistoryForVehicle(int vehicleId)
+    {
+        using var db = CreateContext();
+
+        return db.WorkOrders
+            .Include(w => w.Customer)
+            .Include(w => w.Vehicle)
+            .Include(w => w.Technician)
+            .Include(w => w.LineItems)
+            .Where(w => w.VehicleId == vehicleId && w.Status != WorkOrderStatus.Draft)
+            .OrderByDescending(w => w.CreatedAt)
+            .AsNoTracking()
+            .ToList();
+    }
 }

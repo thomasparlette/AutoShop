@@ -73,7 +73,8 @@ namespace AutoShop.Data.Migrations
                     LastName = table.Column<string>(type: "TEXT", nullable: false),
                     Phone = table.Column<string>(type: "TEXT", nullable: true),
                     Active = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LaborRate = table.Column<decimal>(type: "TEXT", nullable: false)
+                    LaborRate = table.Column<decimal>(type: "TEXT", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

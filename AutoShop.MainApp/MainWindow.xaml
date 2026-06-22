@@ -25,7 +25,9 @@
             <TabItem x:Name="SettingsTab" Header="Shop Settings">
                 <views:ShopSettingsView />
             </TabItem>
-            
+            <TabItem Header="Inventory">
+                <views:PartView />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

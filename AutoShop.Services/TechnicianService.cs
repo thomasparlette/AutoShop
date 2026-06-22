@@ -108,4 +108,55 @@ public class TechnicianService
         var factory = new AppDbContextFactory();
         return factory.CreateDbContext(Array.Empty<string>());
     }
+    public void SyncTechniciansFromUsers()
+    {
+        using var db = CreateContext();
+
+        var techUsers = db.Users
+            .Where(u => u.IsActive && u.Role.HasFlag(UserRole.Technician))
+            .ToList();
+
+        foreach (var user in techUsers)
+        {
+            var displayName = string.IsNullOrWhiteSpace(user.DisplayName)
+                ? user.UserName
+                : user.DisplayName;
+
+            var parts = displayName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            var firstName = parts.Length > 0 ? parts[0] : displayName.Trim();
+            var lastName = parts.Length > 1 ? parts[1] : string.Empty;
+
+            var tech = db.Technicians.FirstOrDefault(t => t.UserName == user.UserName);
+
+            if (tech == null)
+            {
+                db.Technicians.Add(new Technician
+                {
+                    UserName = user.UserName,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Phone = null,
+                    Active = true,
+                    LaborRate = 0m
+                });
+            }
+            else
+            {
+                tech.FirstName = firstName;
+                tech.LastName = lastName;
+                tech.Active = true;
+            }
+        }
+        var activeUserNames = techUsers.Select(u => u.UserName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var inactiveTechs = db.Technicians
+            .Where(t => !activeUserNames.Contains(t.UserName))
+            .ToList();
+
+        foreach (var tech in inactiveTechs)
+        {
+            tech.Active = false;
+        }
+        db.SaveChanges();
+    }
 }

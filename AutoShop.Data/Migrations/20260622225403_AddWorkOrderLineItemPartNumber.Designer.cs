@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoShop.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260622181911_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260622225403_AddWorkOrderLineItemPartNumber")]
+    partial class AddWorkOrderLineItemPartNumber
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -145,6 +145,54 @@ namespace AutoShop.Data.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("AutoShop.Core.Entities.Part", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PartNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("QuantityOnHand")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReorderLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("SellPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Supplier")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNumber")
+                        .IsUnique();
+
+                    b.ToTable("Parts");
+                });
+
             modelBuilder.Entity("AutoShop.Core.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -215,6 +263,9 @@ namespace AutoShop.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(1);
 
+                    b.Property<decimal>("PartMarkupPercent")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Phone")
                         .HasColumnType("TEXT");
 
@@ -252,6 +303,7 @@ namespace AutoShop.Data.Migrations
                             DefaultLaborRate = 0m,
                             InvoicePrefix = "WO-",
                             NextInvoiceNumber = 1,
+                            PartMarkupPercent = 35m,
                             ReceiptFooterText = "Thank you for your business.",
                             ShopName = "AutoShop",
                             TaxRate = 0m
@@ -279,6 +331,10 @@ namespace AutoShop.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -492,6 +548,9 @@ namespace AutoShop.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("LineTotal")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PartNumber")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Quantity")

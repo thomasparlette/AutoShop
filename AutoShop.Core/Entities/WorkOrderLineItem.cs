@@ -18,7 +18,7 @@ public class WorkOrderLineItem : INotifyPropertyChanged
     private decimal _lineTotal;
 
     public int Id { get; set; }
-
+    public string? PartNumber { get; set; }
     public int WorkOrderId { get; set; }
     public WorkOrder? WorkOrder { get; set; }
 

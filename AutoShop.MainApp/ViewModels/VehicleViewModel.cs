@@ -69,14 +69,14 @@ public class VehicleViewModel : INotifyPropertyChanged, IRefreshable
     public ICommand SaveCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand RefreshCommand { get; }
-
+    public ICommand OpenServiceHistoryCommand { get; }
     public VehicleViewModel()
     {
         NewCommand = new RelayCommand(NewVehicle);
         SaveCommand = new RelayCommand(SaveVehicle);
         DeleteCommand = new RelayCommand(DeleteVehicle);
         RefreshCommand = new RelayCommand(LoadVehicles);
-
+        OpenServiceHistoryCommand = new RelayCommand(OpenServiceHistory);
         LoadCustomers();
         LoadVehicles();
     }
@@ -125,7 +125,14 @@ public class VehicleViewModel : INotifyPropertyChanged, IRefreshable
         LoadVehicles();
         NewVehicle();
     }
+    private void OpenServiceHistory()
+    {
+        if (SelectedVehicle == null)
+            return;
 
+        var window = new AutoShop.MainApp.Views.VehicleServiceHistoryWindow(SelectedVehicle.Id);
+        window.ShowDialog();
+    }
     private static Vehicle CloneVehicle(Vehicle vehicle)
     {
         return new Vehicle

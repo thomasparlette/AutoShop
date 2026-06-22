@@ -13,4 +13,5 @@ public class Technician
     public decimal LaborRate { get; set; }
 
     public string FullName => $"{FirstName} {LastName}".Trim();
+    public string UserName { get; set; } = string.Empty;
 }

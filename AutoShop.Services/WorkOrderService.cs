@@ -153,7 +153,6 @@ public class WorkOrderService
         using var db = CreateContext();
 
         return db.Technicians
-            .AsNoTracking()
             .OrderBy(t => t.LastName)
             .ThenBy(t => t.FirstName)
             .ToList();

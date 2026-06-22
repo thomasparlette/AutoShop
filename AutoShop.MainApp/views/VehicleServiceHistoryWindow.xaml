@@ -1,0 +1,36 @@
+<Window x:Class="AutoShop.MainApp.Views.VehicleServiceHistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Vehicle Service History"
+        Height="700"
+        Width="1200"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="0,0,0,12">
+            <TextBlock Text="{Binding Vehicle.Make}" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="{Binding Vehicle.Model}" FontSize="16"/>
+            <TextBlock Text="{Binding Vehicle.Vin}" FontSize="14"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding ServiceHistory}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="RO #" Binding="{Binding WorkOrderNumber}" Width="*" />
+                <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt, StringFormat=g}" Width="*" />
+                <DataGridTextColumn Header="Mileage In" Binding="{Binding MileageIn}" Width="*" />
+                <DataGridTextColumn Header="Mileage Out" Binding="{Binding MileageOut}" Width="*" />
+                <DataGridTextColumn Header="Technician" Binding="{Binding Technician.FullName}" Width="*" />
+                <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="*" />
+                <DataGridTextColumn Header="Total" Binding="{Binding GrandTotal, StringFormat=C}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

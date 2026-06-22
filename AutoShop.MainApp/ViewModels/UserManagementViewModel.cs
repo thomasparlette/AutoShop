@@ -184,6 +184,7 @@ public class UserManagementViewModel : INotifyPropertyChanged, IRefreshable
         }
 
         _userService.SaveUser(CurrentUser, string.IsNullOrWhiteSpace(Password) ? null : Password);
+        new TechnicianService().SyncTechniciansFromUsers();
         LoadUsers();
         NewUser();
     }
