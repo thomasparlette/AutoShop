@@ -23,6 +23,8 @@ namespace AutoShop.Data
         public DbSet<WorkOrderInspectionItem> WorkOrderInspectionItems => Set<WorkOrderInspectionItem>();
         public DbSet<Technician> Technicians => Set<Technician>();
         public DbSet<Part> Parts => Set<Part>();
+        public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+        public DbSet<PurchaseOrderLineItem> PurchaseOrderLineItems => Set<PurchaseOrderLineItem>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -159,6 +161,11 @@ namespace AutoShop.Data
             modelBuilder.Entity<Part>()
                 .Property(p => p.SellPrice)
                 .HasPrecision(18, 2);
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasMany(p => p.LineItems)
+                .WithOne(li => li.PurchaseOrder!)
+                .HasForeignKey(li => li.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
        
     }

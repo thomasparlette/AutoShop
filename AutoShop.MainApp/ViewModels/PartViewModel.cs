@@ -120,6 +120,8 @@ public class PartViewModel : INotifyPropertyChanged, IRefreshable
         {
             Parts.Add(part);
         }
+
+        LoadLowStockParts();
     }
 
     private void NewPart()
@@ -206,5 +208,16 @@ public class PartViewModel : INotifyPropertyChanged, IRefreshable
     private static decimal CalculateSellPrice(decimal cost, decimal markupPercent)
     {
         return cost + (cost * markupPercent / 100m);
+    }
+    public ObservableCollection<Part> LowStockParts { get; } = new();
+
+    private void LoadLowStockParts()
+    {
+        LowStockParts.Clear();
+
+        foreach (var part in _partService.GetLowStockParts())
+        {
+            LowStockParts.Add(part);
+        }
     }
 }

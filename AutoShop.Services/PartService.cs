@@ -39,6 +39,24 @@ public class PartService
         return db.Parts.FirstOrDefault(p => p.Id == id);
     }
 
+    public Part? GetPartByNumber(string partNumber)
+    {
+        using var db = CreateContext();
+
+        return db.Parts.FirstOrDefault(p => p.PartNumber == partNumber);
+    }
+
+    public List<Part> GetLowStockParts()
+    {
+        using var db = CreateContext();
+
+        return db.Parts
+            .AsNoTracking()
+            .Where(p => p.Active && p.ReorderLevel > 0 && p.QuantityOnHand < p.ReorderLevel)
+            .OrderBy(p => p.PartNumber)
+            .ToList();
+    }
+
     public Part SavePart(Part part)
     {
         using var db = CreateContext();
@@ -87,11 +105,5 @@ public class PartService
     {
         var factory = new AppDbContextFactory();
         return factory.CreateDbContext(Array.Empty<string>());
-    }
-    public Part? GetPartByNumber(string partNumber)
-    {
-        using var db = CreateContext();
-
-        return db.Parts.FirstOrDefault(p => p.PartNumber == partNumber);
     }
 }

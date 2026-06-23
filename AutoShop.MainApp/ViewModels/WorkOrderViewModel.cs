@@ -113,6 +113,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
         SelectedTechnician = Technicians.FirstOrDefault(t => t.Id == workOrder.TechnicianId);
+        CurrentWorkOrder.InventoryApplied = workOrder.InventoryApplied;
         MileageOutText = workOrder.MileageOut?.ToString() ?? string.Empty;
         RecalculateCurrentTotals();
     }
@@ -155,7 +156,9 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         if (SelectedTechnician != null)
             CurrentWorkOrder.TechnicianId = SelectedTechnician.Id;
-
+        CurrentWorkOrder.InventoryApplied = CurrentWorkOrder.Status == WorkOrderStatus.Completed
+            ? CurrentWorkOrder.InventoryApplied
+    : false;
         RecalculateCurrentTotals();
 
         _workOrderService.SaveWorkOrder(CurrentWorkOrder);
@@ -335,6 +338,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         {
             CurrentWorkOrder.CompletedAt = DateTime.Now;
             ApplyCompletedMileage();
+            ApplyInventoryForCompletedWorkOrder();
         }
 
         OnPropertyChanged(nameof(CurrentWorkOrder));
@@ -386,7 +390,27 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         SetCompletedCommand.RaiseCanExecuteChanged();
         SetPaidCommand.RaiseCanExecuteChanged();
     }
+    private void ApplyInventoryForCompletedWorkOrder()
+    {
+        if (CurrentWorkOrder.InventoryApplied)
+            return;
 
+        var partLines = LineItems
+            .Where(x => x.ItemType == WorkOrderLineItemType.Part && !string.IsNullOrWhiteSpace(x.PartNumber))
+            .GroupBy(x => x.PartNumber!);
+
+        foreach (var group in partLines)
+        {
+            var part = _partService.GetPartByNumber(group.Key);
+            if (part == null)
+                continue;
+
+            var quantityUsed = (int)group.Sum(x => x.Quantity);
+            _partService.AdjustQuantity(part.Id, -quantityUsed);
+        }
+
+        CurrentWorkOrder.InventoryApplied = true;
+    }
     public string MileageOutText
     {
         get => _mileageOutText;

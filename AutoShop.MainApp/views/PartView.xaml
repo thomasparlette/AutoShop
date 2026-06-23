@@ -4,65 +4,158 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
+
     <Grid Margin="16">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="1.2*" />
+            <ColumnDefinition Width="1.1*" />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0">
-            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-                <TextBlock Text="Inventory" FontSize="24" FontWeight="Bold" Margin="0,0,0,10" />
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="12" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBox Width="220"
-                             Height="30"
-                             Margin="0,0,8,0"
-                             VerticalContentAlignment="Center"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="Search" Width="80" Margin="0,0,8,0" Command="{Binding RefreshCommand}" />
-                    <Button Content="New" Width="80" Command="{Binding NewCommand}" />
-                </StackPanel>
+            <TextBlock Text="Inventory"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="0,0,0,10" />
 
-                <CheckBox Content="Show inactive"
-                          IsChecked="{Binding ShowInactive}"
-                          Margin="0,0,0,8" />
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        Margin="0,0,0,10">
+                <TextBox Width="220"
+                         Height="30"
+                         Margin="0,0,8,0"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Content="Search"
+                        Width="80"
+                        Margin="0,0,8,0"
+                        Command="{Binding RefreshCommand}" />
+                <Button Content="New"
+                        Width="80"
+                        Command="{Binding NewCommand}" />
             </StackPanel>
 
-            <DataGrid ItemsSource="{Binding Parts}"
+            <CheckBox Grid.Row="2"
+                      Visibility="Collapsed"
+                      Content="Show inactive"
+                      IsChecked="{Binding ShowInactive}"
+                      Margin="0,0,0,8" />
+
+            <DataGrid Grid.Row="2"
+                      ItemsSource="{Binding Parts}"
                       SelectedItem="{Binding SelectedPart, Mode=TwoWay}"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
-                      IsReadOnly="True">
+                      IsReadOnly="True"
+                      Margin="0,40,0,0">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Part #" Binding="{Binding PartNumber}" Width="*" />
-                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*" />
-                    <DataGridTextColumn Header="Qty" Binding="{Binding QuantityOnHand}" Width="70" />
-                    <DataGridTextColumn Header="Cost" Binding="{Binding Cost, StringFormat=C}" Width="90" />
-                    <DataGridTextColumn Header="Sell" Binding="{Binding SellPrice, StringFormat=C}" Width="90" />
-                    <DataGridTextColumn Header="Reorder" Binding="{Binding ReorderLevel}" Width="80" />
-                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding Active}" Width="70" />
+                    <DataGridTextColumn Header="Part #"
+                                        Binding="{Binding PartNumber}"
+                                        Width="*" />
+                    <DataGridTextColumn Header="Description"
+                                        Binding="{Binding Description}"
+                                        Width="2*" />
+                    <DataGridTextColumn Header="Qty"
+                                        Binding="{Binding QuantityOnHand}"
+                                        Width="70" />
+                    <DataGridTextColumn Header="Cost"
+                                        Binding="{Binding Cost, StringFormat=C}"
+                                        Width="90" />
+                    <DataGridTextColumn Header="Sell"
+                                        Binding="{Binding SellPrice, StringFormat=C}"
+                                        Width="90" />
+                    <DataGridTextColumn Header="Reorder"
+                                        Binding="{Binding ReorderLevel}"
+                                        Width="80" />
+                    <DataGridCheckBoxColumn Header="Active"
+                                            Binding="{Binding Active}"
+                                            Width="70" />
                 </DataGrid.Columns>
             </DataGrid>
-        </DockPanel>
 
-        <Border Grid.Column="2" Padding="16" BorderThickness="1" BorderBrush="Gray" CornerRadius="6">
+            <Border Grid.Row="4"
+                    BorderBrush="DarkOrange"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12"
+                    Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Low Inventory"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="DarkOrange"
+                               Margin="0,0,0,8" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  Height="180">
+                        <ItemsControl ItemsSource="{Binding LowStockParts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#DDD"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="0,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="110" />
+                                                <ColumnDefinition Width="90" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{Binding PartNumber}"
+                                                       FontWeight="SemiBold" />
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding QuantityOnHand}"
+                                                       HorizontalAlignment="Right" />
+
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding ReorderLevel}"
+                                                       HorizontalAlignment="Right" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Column="2"
+                Padding="16"
+                BorderThickness="1"
+                BorderBrush="Gray"
+                CornerRadius="6">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock Text="Part Details" FontSize="20" FontWeight="Bold" Margin="0,0,0,12" />
+                    <TextBlock Text="Part Details"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="0,0,0,12" />
 
                     <TextBlock Text="Part Number" />
-                    <TextBox Text="{Binding CurrentPart.PartNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding CurrentPart.PartNumber, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8" />
 
                     <TextBlock Text="Description" />
-                    <TextBox Text="{Binding CurrentPart.Description, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding CurrentPart.Description, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8" />
 
                     <TextBlock Text="Supplier" />
-                    <TextBox Text="{Binding CurrentPart.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding CurrentPart.Supplier, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8" />
 
                     <TextBlock Text="Cost" />
-                    <TextBox Text="{Binding CostText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding CostText, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8" />
 
                     <TextBlock Text="Sell Price" />
                     <TextBox Text="{Binding SellPriceText, UpdateSourceTrigger=PropertyChanged}"
@@ -70,19 +163,29 @@
                              Margin="0,0,0,8" />
 
                     <TextBlock Text="Quantity On Hand" />
-                    <TextBox Text="{Binding CurrentPart.QuantityOnHand, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding QuantityOnHandText, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8" />
 
                     <TextBlock Text="Reorder Level" />
-                    <TextBox Text="{Binding CurrentPart.ReorderLevel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding ReorderLevelText, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8" />
 
                     <CheckBox Content="Active"
                               IsChecked="{Binding CurrentPart.Active}"
                               Margin="0,0,0,12" />
 
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="Save" Width="90" Margin="0,0,8,0" Command="{Binding SaveCommand}" />
-                        <Button Content="Delete" Width="90" Margin="0,0,8,0" Command="{Binding DeleteCommand}" />
-                        <Button Content="Clear" Width="90" Command="{Binding NewCommand}" />
+                        <Button Content="Save"
+                                Width="90"
+                                Margin="0,0,8,0"
+                                Command="{Binding SaveCommand}" />
+                        <Button Content="Delete"
+                                Width="90"
+                                Margin="0,0,8,0"
+                                Command="{Binding DeleteCommand}" />
+                        <Button Content="Clear"
+                                Width="90"
+                                Command="{Binding NewCommand}" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

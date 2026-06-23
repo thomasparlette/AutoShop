@@ -50,5 +50,6 @@ namespace AutoShop.Core.Entities
         };
         public int? TechnicianId { get; set; }
         public Technician? Technician { get; set; }
+        public bool InventoryApplied { get; set; }
     }
 }
