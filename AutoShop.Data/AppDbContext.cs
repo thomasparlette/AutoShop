@@ -25,6 +25,7 @@ namespace AutoShop.Data
         public DbSet<Part> Parts => Set<Part>();
         public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
         public DbSet<PurchaseOrderLineItem> PurchaseOrderLineItems => Set<PurchaseOrderLineItem>();
+        public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -161,11 +162,36 @@ namespace AutoShop.Data
             modelBuilder.Entity<Part>()
                 .Property(p => p.SellPrice)
                 .HasPrecision(18, 2);
+
             modelBuilder.Entity<PurchaseOrder>()
                 .HasMany(p => p.LineItems)
                 .WithOne(li => li.PurchaseOrder!)
                 .HasForeignKey(li => li.PurchaseOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Part)
+                .WithMany()
+                .HasForeignKey(t => t.PartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .Property(t => t.TransactionType)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .Property(t => t.ReferenceNumber)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .Property(t => t.Notes)
+                .HasMaxLength(500);
+            
+            modelBuilder.Entity<WorkOrderLineItem>()
+                .HasOne(x => x.Part)
+                .WithMany()
+                .HasForeignKey(x => x.PartId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
        
     }

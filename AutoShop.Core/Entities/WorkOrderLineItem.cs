@@ -21,7 +21,9 @@ public class WorkOrderLineItem : INotifyPropertyChanged
     public string? PartNumber { get; set; }
     public int WorkOrderId { get; set; }
     public WorkOrder? WorkOrder { get; set; }
+    public int? PartId { get; set; }
 
+    public Part? Part { get; set; }
     public WorkOrderLineItemType ItemType
     {
         get => _itemType;

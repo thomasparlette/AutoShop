@@ -399,14 +399,17 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
             .Where(x => x.ItemType == WorkOrderLineItemType.Part && !string.IsNullOrWhiteSpace(x.PartNumber))
             .GroupBy(x => x.PartNumber!);
 
-        foreach (var group in partLines)
+        foreach (var line in partLines)
         {
-            var part = _partService.GetPartByNumber(group.Key);
-            if (part == null)
+            if (!line.PartId.HasValue)
                 continue;
 
-            var quantityUsed = (int)group.Sum(x => x.Quantity);
-            _partService.AdjustQuantity(part.Id, -quantityUsed);
+            _partService.AdjustQuantity(
+                line.PartId.Value,
+                -(int)line.Quantity,
+                "Work Order",
+                CurrentWorkOrder.WorkOrderNumber,
+                "Work Order Completion");
         }
 
         CurrentWorkOrder.InventoryApplied = true;

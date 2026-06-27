@@ -28,6 +28,12 @@
             <TabItem Header="Inventory">
                 <views:PartView />
             </TabItem>
+            <TabItem Header="Purchase Orders">
+                <views:PurchaseOrderView />
+            </TabItem>
+            <TabItem Header="Inventory History">
+                <views:InventoryHistoryView />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

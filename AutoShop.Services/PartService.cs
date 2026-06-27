@@ -42,7 +42,6 @@ public class PartService
     public Part? GetPartByNumber(string partNumber)
     {
         using var db = CreateContext();
-
         return db.Parts.FirstOrDefault(p => p.PartNumber == partNumber);
     }
 
@@ -84,11 +83,24 @@ public class PartService
         if (part == null)
             return;
 
+        var isReferenced =
+            db.InventoryTransactions.Any(t => t.PartId == id) ||
+            db.WorkOrderLineItems.Any(li => li.PartId == id) ||
+            db.PurchaseOrderLineItems.Any(li => li.PartId == id);
+
+        if (isReferenced)
+        {
+            part.Active = false;
+            part.UpdatedAt = DateTime.Now;
+            db.SaveChanges();
+            return;
+        }
+
         db.Parts.Remove(part);
         db.SaveChanges();
     }
 
-    public void AdjustQuantity(int partId, int delta)
+    public void AdjustQuantity(int partId,int delta,string transactionType = "Adjustment",string referenceNumber = "",string notes = "")
     {
         using var db = CreateContext();
 
@@ -96,9 +108,35 @@ public class PartService
         if (part == null)
             return;
 
+        var beforeQty = part.QuantityOnHand;
         part.QuantityOnHand += delta;
         part.UpdatedAt = DateTime.Now;
+
+        db.InventoryTransactions.Add(new InventoryTransaction
+        {
+            PartId = part.Id,
+            TransactionDate = DateTime.Now,
+            QuantityBefore = beforeQty,
+            QuantityAfter = part.QuantityOnHand,
+            QuantityChange = delta,
+            TransactionType = transactionType,
+            ReferenceNumber = referenceNumber ?? string.Empty,
+            Notes = notes ?? string.Empty
+        });
+
         db.SaveChanges();
+    }
+
+    public List<InventoryTransaction> GetTransactionsForPart(int partId)
+    {
+        using var db = CreateContext();
+
+        return db.InventoryTransactions
+            .Include(t => t.Part)
+            .AsNoTracking()
+            .Where(t => t.PartId == partId)
+            .OrderByDescending(t => t.TransactionDate)
+            .ToList();
     }
 
     private static AppDbContext CreateContext()

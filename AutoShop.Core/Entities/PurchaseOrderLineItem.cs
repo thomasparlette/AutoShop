@@ -14,5 +14,7 @@ public class PurchaseOrderLineItem
     public string Description { get; set; } = string.Empty;
 
     public int QuantityOrdered { get; set; }
+    public int QuantityReceived { get; set; }
+
     public decimal UnitCost { get; set; }
 }

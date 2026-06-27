@@ -14,6 +14,8 @@ public class AuthService
     {
         using var db = CreateContext();
 
+        db.Database.Migrate();
+
         if (!db.ShopSettings.Any())
         {
             db.ShopSettings.Add(new ShopSettings
@@ -29,7 +31,7 @@ public class AuthService
             });
         }
 
-        if (!db.Users.Any(u => u.UserName == "admin"))
+        if (!db.Users.Any())
         {
             db.Users.Add(new AppUser
             {
@@ -41,23 +43,7 @@ public class AuthService
                 PasswordHash = PasswordHasher.HashPassword("Admin123!")
             });
         }
-        else
-        {
-            var admin = db.Users.First(u => u.UserName == "admin");
 
-            admin.DisplayName = "Administrator";
-            admin.IsActive = true;
-
-            // force the correct roles for the admin account
-            admin.Role = UserRole.Admin | UserRole.Technician | UserRole.Finance;
-
-            // if the password hash is missing or from the old setup, reset it
-            if (string.IsNullOrWhiteSpace(admin.PasswordHash))
-            {
-                admin.PasswordHash = PasswordHasher.HashPassword("Admin123!");
-            }
-        }
-        _technicianService.SyncTechniciansFromUsers();
         db.SaveChanges();
     }
 

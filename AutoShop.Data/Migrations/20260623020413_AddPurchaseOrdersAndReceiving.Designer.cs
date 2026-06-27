@@ -3,6 +3,7 @@ using System;
 using AutoShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoShop.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260623020413_AddPurchaseOrdersAndReceiving")]
+    partial class AddPurchaseOrdersAndReceiving
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -140,49 +143,6 @@ namespace AutoShop.Data.Migrations
                     b.HasIndex("LastName", "FirstName");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("AutoShop.Core.Entities.InventoryTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("PartId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("QuantityAfter")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("QuantityBefore")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("QuantityChange")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ReferenceNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TransactionType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PartId");
-
-                    b.ToTable("InventoryTransactions");
                 });
 
             modelBuilder.Entity("AutoShop.Core.Entities.Part", b =>
@@ -708,17 +668,6 @@ namespace AutoShop.Data.Migrations
                     b.Navigation("Vehicle");
 
                     b.Navigation("WorkOrder");
-                });
-
-            modelBuilder.Entity("AutoShop.Core.Entities.InventoryTransaction", b =>
-                {
-                    b.HasOne("AutoShop.Core.Entities.Part", "Part")
-                        .WithMany()
-                        .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Part");
                 });
 
             modelBuilder.Entity("AutoShop.Core.Entities.Payment", b =>
