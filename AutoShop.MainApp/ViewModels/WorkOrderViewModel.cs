@@ -365,22 +365,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         _vehicleService.UpdateMileageOut(SelectedVehicle.Id, MileageOutValue.Value);
     }
-    private void DeductInventoryForCompletedWorkOrder()
-    {
-        var partLines = LineItems.Where(x => x.ItemType == WorkOrderLineItemType.Part);
-
-        foreach (var line in partLines)
-        {
-            if (string.IsNullOrWhiteSpace(line.PartNumber))
-                continue;
-
-            var part = _partService.GetPartByNumber(line.PartNumber);
-            if (part == null)
-                continue;
-
-            _partService.AdjustQuantity(part.Id, -(int)line.Quantity);
-        }
-    }
+    
     private void RefreshWorkflowCommands()
     {
         OpenInspectionCommand.RaiseCanExecuteChanged();
@@ -395,20 +380,15 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
         if (CurrentWorkOrder.InventoryApplied)
             return;
 
-        var partLines = LineItems
-            .Where(x => x.ItemType == WorkOrderLineItemType.Part && !string.IsNullOrWhiteSpace(x.PartNumber))
-            .GroupBy(x => x.PartNumber!);
-
-        foreach (var line in partLines)
+        foreach (var line in LineItems.Where(x =>
+                     x.ItemType == WorkOrderLineItemType.Part &&
+                     x.PartId.HasValue))
         {
-            if (!line.PartId.HasValue)
-                continue;
-
             _partService.AdjustQuantity(
                 line.PartId.Value,
                 -(int)line.Quantity,
                 "Work Order",
-                CurrentWorkOrder.WorkOrderNumber,
+                CurrentWorkOrder.WorkOrderNumber ?? string.Empty,
                 "Work Order Completion");
         }
 
