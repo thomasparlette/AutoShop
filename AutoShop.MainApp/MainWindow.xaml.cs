@@ -12,13 +12,14 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        UsersTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        /*UsersTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         SettingsTab.Visibility = AppSession.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         TechnicianDashboardTab.Visibility = AppSession.HasRole(UserRole.Technician) || AppSession.IsAdmin
             ? Visibility.Visible
             : Visibility.Collapsed;
 
         MainTabs.SelectionChanged += MainTabs_SelectionChanged;
+        */
     }
 
     private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)

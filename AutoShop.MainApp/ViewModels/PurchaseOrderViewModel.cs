@@ -304,6 +304,7 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
             return;
 
         var existing = LineItems.FirstOrDefault(x => x.PartNumber == part.PartNumber);
+
         if (existing != null)
         {
             existing.QuantityOrdered += 1;
@@ -311,14 +312,14 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
         }
         else
         {
-            LineItems.Add(new WorkOrderLineItem
+            LineItems.Add(new PurchaseOrderLineItem
             {
                 PartId = part.Id,
                 PartNumber = part.PartNumber,
                 Description = part.Description,
-                ItemType = WorkOrderLineItemType.Part,
-                Quantity = 1,
-                UnitPrice = part.SellPrice
+                QuantityOrdered = 1,
+                QuantityReceived = 0,
+                UnitCost = part.Cost
             });
         }
 

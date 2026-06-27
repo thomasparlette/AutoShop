@@ -14,7 +14,6 @@ public class AuthService
     {
         using var db = CreateContext();
 
-        db.Database.Migrate();
 
         if (!db.ShopSettings.Any())
         {
