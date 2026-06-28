@@ -1,4 +1,5 @@
 ﻿using AutoShop.Core.Entities;
+using AutoShop.Data.Migrations;
 using AutoShop.MainApp.Helpers;
 using AutoShop.Services;
 using Microsoft.Win32;
@@ -98,6 +99,11 @@ public class ShopSettingsViewModel : INotifyPropertyChanged, IRefreshable
         set { Settings.TaxRate = value; OnPropertyChanged(); }
     }
 
+    public decimal PartMarkupPercent
+    {
+        get => Settings.PartMarkupPercent;
+        set { Settings.PartMarkupPercent = value; OnPropertyChanged(); }
+    }
     public decimal DefaultLaborRate
     {
         get => Settings.DefaultLaborRate;
@@ -194,5 +200,6 @@ public class ShopSettingsViewModel : INotifyPropertyChanged, IRefreshable
         OnPropertyChanged(nameof(DefaultLaborRate));
         OnPropertyChanged(nameof(ReceiptFooterText));
         OnPropertyChanged(nameof(DefaultThankYouMessage));
+        OnPropertyChanged(nameof(PartMarkupPercent));
     }
 }
