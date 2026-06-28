@@ -24,8 +24,8 @@ public partial class App : Application
 
             new AuthService().EnsureDefaults();
 
-            var login = new LoginWindow();
-            var loginResult = login.ShowDialog();
+            var loginWindow = new LoginWindow();
+            var loginResult = loginWindow.ShowDialog();
 
             if (loginResult == true)
             {

@@ -40,7 +40,7 @@
                 <TextBlock Text="Tax Rate" />
                 <TextBox Text="{Binding TaxRate, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
                 <TextBlock Text="Part Markup" />
-                <TextBox Text="{Binding PartMarkup, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                <TextBox Text="{Binding CurrentSettings.PartMarkupPercent, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock Text="Default Labor Rate" />
                 <TextBox Text="{Binding DefaultLaborRate, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
 

@@ -43,7 +43,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate>
                         <Border Background="{Binding Status,
-                                Converter={StaticResource WorkOrderStatusToBrushConverter}}"
+                                Converter={StaticResource StatusToBrushConverter}}"
                                 CornerRadius="4"
                                 Padding="4">
                           <TextBlock Text="{Binding StatusDisplay}"

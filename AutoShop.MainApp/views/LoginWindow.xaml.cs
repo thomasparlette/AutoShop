@@ -19,6 +19,7 @@ public partial class LoginWindow : Window
         var password = PasswordBox.Password;
 
         var user = _authService.Authenticate(userName, password);
+
         if (user == null)
         {
             ErrorText.Text = "Invalid username or password.";
