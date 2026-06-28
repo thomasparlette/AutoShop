@@ -14,7 +14,6 @@ public class AuthService
     {
         using var db = CreateContext();
 
-
         if (!db.ShopSettings.Any())
         {
             db.ShopSettings.Add(new ShopSettings
@@ -44,6 +43,8 @@ public class AuthService
         }
 
         db.SaveChanges();
+
+        _technicianService.SyncTechniciansFromUsers();
     }
 
     public AppUser? Authenticate(string userName, string password)

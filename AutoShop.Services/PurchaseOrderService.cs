@@ -7,6 +7,7 @@ namespace AutoShop.Services;
 
 public class PurchaseOrderService
 {
+    private readonly InventoryService _inventoryService = new();
     public List<PurchaseOrder> GetPurchaseOrders(string? searchText = null)
     {
         using var db = CreateContext();

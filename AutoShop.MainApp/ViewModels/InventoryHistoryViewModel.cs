@@ -11,7 +11,7 @@ namespace AutoShop.MainApp.ViewModels;
 public class InventoryHistoryViewModel : INotifyPropertyChanged, IRefreshable
 {
     private readonly PartService _partService = new();
-
+    private readonly InventoryService _inventoryService = new();
     public ObservableCollection<InventoryTransaction> Transactions { get; } = new();
 
     private Part? _selectedPart;
@@ -64,7 +64,7 @@ public class InventoryHistoryViewModel : INotifyPropertyChanged, IRefreshable
     {
         Transactions.Clear();
 
-        foreach (var tx in _partService.GetTransactionsForPart(partId))
+        foreach (var tx in _inventoryService.GetTransactionsForPart(partId))
         {
             Transactions.Add(tx);
         }

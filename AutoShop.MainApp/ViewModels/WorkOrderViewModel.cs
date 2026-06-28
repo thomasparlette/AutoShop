@@ -23,9 +23,8 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     private Customer? _selectedCustomer;
     private Vehicle? _selectedVehicle;
     private string _searchText = string.Empty;
-    private int? MileageOutValue => int.TryParse(MileageOutText, out var value) ? value : null;
     private Technician? _selectedTechnician;
-
+    private readonly InventoryService _inventoryService = new();
     private void LoadCustomers()
     {
         Customers.Clear();
@@ -64,101 +63,37 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
     }
     private void LoadSelectedWorkOrder(WorkOrder workOrder)
     {
-        CurrentWorkOrder = new WorkOrder
-        {
-            Id = workOrder.Id,
-            WorkOrderNumber = workOrder.WorkOrderNumber,
-            CustomerId = workOrder.CustomerId,
-            VehicleId = workOrder.VehicleId,
-            CreatedAt = workOrder.CreatedAt,
-            CompletedAt = workOrder.CompletedAt,
-            Status = workOrder.Status,
-            Complaint = workOrder.Complaint,
-            Diagnosis = workOrder.Diagnosis,
-            Notes = workOrder.Notes,
-            LaborTotal = workOrder.LaborTotal,
-            PartsTotal = workOrder.PartsTotal,
-            TaxTotal = workOrder.TaxTotal,
-            DiscountTotal = workOrder.DiscountTotal,
-            GrandTotal = workOrder.GrandTotal,
-            AmountPaid = workOrder.AmountPaid,
-            BalanceDue = workOrder.BalanceDue,
-            MileageOut = workOrder.MileageOut
-
-        };
-
-        SelectedStatus = workOrder.Status;
-
-        LineItems.Clear();
-        foreach (var item in workOrder.LineItems)
-        {
-            LineItems.Add(new WorkOrderLineItem
-            {
-                Id = item.Id,
-                WorkOrderId = item.WorkOrderId,
-                Description = item.Description,
-                ItemType = item.ItemType,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                PartNumber = item.PartNumber,
-                LineTotal = item.LineTotal
-            });
-        }
-
-        SelectedCustomer = Customers.FirstOrDefault(c => c.Id == workOrder.CustomerId);
-        if (SelectedCustomer != null)
-        {
-            LoadVehiclesForCustomer(SelectedCustomer.Id);
-        }
-
-        SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
-        SelectedTechnician = Technicians.FirstOrDefault(t => t.Id == workOrder.TechnicianId);
-        CurrentWorkOrder.InventoryApplied = workOrder.InventoryApplied;
-        MileageOutText = workOrder.MileageOut?.ToString() ?? string.Empty;
-        RecalculateCurrentTotals();
+        LoadEditableWorkOrder(workOrder);
     }
     private void NewWorkOrder()
     {
         SelectedWorkOrder = null;
         SelectedCustomer = null;
         SelectedVehicle = null;
+        SelectedTechnician = null;
 
         CurrentWorkOrder = new WorkOrder
         {
             Status = WorkOrderStatus.Draft,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            InventoryApplied = false
         };
 
         SelectedStatus = WorkOrderStatus.Draft;
-        SelectedTechnician = null;
         MileageOutText = string.Empty;
         LineItems.Clear();
+
         RecalculateCurrentTotals();
     }
     private void SaveWorkOrder()
     {
-        CurrentWorkOrder.Status = SelectedStatus;
-        CurrentWorkOrder.LineItems = LineItems.ToList();
-        CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
-        CurrentWorkOrder.MileageOut = MileageOutValue;
-
-        if (CurrentWorkOrder.Status == WorkOrderStatus.Completed && CurrentWorkOrder.CompletedAt == null)
-            CurrentWorkOrder.CompletedAt = DateTime.Now;
+        ApplyCurrentSelectionToWorkOrder();
 
         if (CurrentWorkOrder.Status == WorkOrderStatus.Completed)
-            ApplyCompletedMileage();
+        {
+            ApplyCompletedWorkflow();
+        }
 
-        if (SelectedCustomer != null)
-            CurrentWorkOrder.CustomerId = SelectedCustomer.Id;
-
-        if (SelectedVehicle != null)
-            CurrentWorkOrder.VehicleId = SelectedVehicle.Id;
-
-        if (SelectedTechnician != null)
-            CurrentWorkOrder.TechnicianId = SelectedTechnician.Id;
-        CurrentWorkOrder.InventoryApplied = CurrentWorkOrder.Status == WorkOrderStatus.Completed
-            ? CurrentWorkOrder.InventoryApplied
-    : false;
         RecalculateCurrentTotals();
 
         _workOrderService.SaveWorkOrder(CurrentWorkOrder);
@@ -336,12 +271,11 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         if (status == WorkOrderStatus.Completed)
         {
-            CurrentWorkOrder.CompletedAt = DateTime.Now;
-            ApplyCompletedMileage();
-            ApplyInventoryForCompletedWorkOrder();
+            ApplyCompletedWorkflow();
         }
 
         OnPropertyChanged(nameof(CurrentWorkOrder));
+        UpdateWorkflowCommands();
     }
     private void LoadTechnicians()
     {
@@ -365,15 +299,10 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
 
         _vehicleService.UpdateMileageOut(SelectedVehicle.Id, MileageOutValue.Value);
     }
-    
+
     private void RefreshWorkflowCommands()
     {
-        OpenInspectionCommand.RaiseCanExecuteChanged();
-        SetOpenCommand.RaiseCanExecuteChanged();
-        SetInProgressCommand.RaiseCanExecuteChanged();
-        SetWaitingApprovalCommand.RaiseCanExecuteChanged();
-        SetCompletedCommand.RaiseCanExecuteChanged();
-        SetPaidCommand.RaiseCanExecuteChanged();
+        UpdateWorkflowCommands();
     }
     private void ApplyInventoryForCompletedWorkOrder()
     {
@@ -384,12 +313,12 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
                      x.ItemType == WorkOrderLineItemType.Part &&
                      x.PartId.HasValue))
         {
-            _partService.AdjustQuantity(
+            _inventoryService.AdjustQuantity(
                 line.PartId.Value,
                 -(int)line.Quantity,
                 "Work Order",
                 CurrentWorkOrder.WorkOrderNumber ?? string.Empty,
-                "Work Order Completion");
+                "Work order completion");
         }
 
         CurrentWorkOrder.InventoryApplied = true;
@@ -432,7 +361,7 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
                 LoadSelectedWorkOrder(value);
             }
         }
-    }    
+    }
     public WorkOrder CurrentWorkOrder
     {
         get => _currentWorkOrder;
@@ -577,5 +506,108 @@ public class WorkOrderViewModel : INotifyPropertyChanged, IRefreshable
                 CurrentWorkOrder.TechnicianId = value.Id;
             }
         }
+    }
+
+    private int? MileageOutValue =>int.TryParse(MileageOutText, out var value) ? value : null;
+
+    private WorkOrder CreateEditableCopy(WorkOrder source)
+    {
+        return new WorkOrder
+        {
+            Id = source.Id,
+            WorkOrderNumber = source.WorkOrderNumber,
+            CustomerId = source.CustomerId,
+            VehicleId = source.VehicleId,
+            TechnicianId = source.TechnicianId,
+            CreatedAt = source.CreatedAt,
+            CompletedAt = source.CompletedAt,
+            Status = source.Status,
+            Complaint = source.Complaint,
+            Diagnosis = source.Diagnosis,
+            Notes = source.Notes,
+            LaborTotal = source.LaborTotal,
+            PartsTotal = source.PartsTotal,
+            TaxTotal = source.TaxTotal,
+            DiscountTotal = source.DiscountTotal,
+            GrandTotal = source.GrandTotal,
+            AmountPaid = source.AmountPaid,
+            BalanceDue = source.BalanceDue,
+            MileageIn = source.MileageIn,
+            MileageOut = source.MileageOut,
+            InventoryApplied = source.InventoryApplied
+        };
+    }
+
+    private void LoadEditableWorkOrder(WorkOrder workOrder)
+    {
+        CurrentWorkOrder = CreateEditableCopy(workOrder);
+
+        LineItems.Clear();
+        foreach (var item in workOrder.LineItems ?? Enumerable.Empty<WorkOrderLineItem>())
+        {
+            LineItems.Add(new WorkOrderLineItem
+            {
+                Id = item.Id,
+                WorkOrderId = item.WorkOrderId,
+                PartId = item.PartId,
+                PartNumber = item.PartNumber,
+                Description = item.Description,
+                ItemType = item.ItemType,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                LineTotal = item.LineTotal
+            });
+        }
+
+        SelectedCustomer = Customers.FirstOrDefault(c => c.Id == workOrder.CustomerId);
+        if (SelectedCustomer != null)
+        {
+            LoadVehiclesForCustomer(SelectedCustomer.Id);
+        }
+
+        SelectedVehicle = Vehicles.FirstOrDefault(v => v.Id == workOrder.VehicleId);
+        SelectedTechnician = Technicians.FirstOrDefault(t => t.Id == workOrder.TechnicianId);
+
+        MileageOutText = workOrder.MileageOut?.ToString() ?? string.Empty;
+        SelectedStatus = workOrder.Status;
+
+        RecalculateCurrentTotals();
+    }
+
+    private void ApplyCurrentSelectionToWorkOrder()
+    {
+        CurrentWorkOrder.Status = SelectedStatus;
+        CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
+        CurrentWorkOrder.MileageOut = MileageOutValue;
+        CurrentWorkOrder.LineItems = LineItems.ToList();
+
+        if (SelectedCustomer != null)
+            CurrentWorkOrder.CustomerId = SelectedCustomer.Id;
+
+        if (SelectedVehicle != null)
+            CurrentWorkOrder.VehicleId = SelectedVehicle.Id;
+
+        if (SelectedTechnician != null)
+            CurrentWorkOrder.TechnicianId = SelectedTechnician.Id;
+    }
+
+    private void ApplyCompletedWorkflow()
+    {
+        CurrentWorkOrder.CompletedAt ??= DateTime.Now;
+        CurrentWorkOrder.MileageIn = SelectedVehicle?.Mileage;
+        CurrentWorkOrder.MileageOut = MileageOutValue;
+
+        ApplyCompletedMileage();
+        ApplyInventoryForCompletedWorkOrder();
+    }
+
+    private void UpdateWorkflowCommands()
+    {
+        OpenInspectionCommand.RaiseCanExecuteChanged();
+        SetOpenCommand.RaiseCanExecuteChanged();
+        SetInProgressCommand.RaiseCanExecuteChanged();
+        SetWaitingApprovalCommand.RaiseCanExecuteChanged();
+        SetCompletedCommand.RaiseCanExecuteChanged();
+        SetPaidCommand.RaiseCanExecuteChanged();
     }
 }

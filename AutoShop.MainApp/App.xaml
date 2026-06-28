@@ -1,9 +1,8 @@
 ﻿<Application x:Class="AutoShop.MainApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:AutoShop.MainApp.Converters" >
+             xmlns:converters="clr-namespace:AutoShop.MainApp.Converters">
     <Application.Resources>
-        <converters:WorkOrderStatusToBrushConverter
-            x:Key="WorkOrderStatusToBrushConverter" />
+        <converters:WorkOrderStatusToBrushConverter x:Key="StatusToBrushConverter" />
     </Application.Resources>
 </Application>

@@ -13,7 +13,7 @@ namespace AutoShop.MainApp.ViewModels;
 public class PartViewModel : INotifyPropertyChanged, IRefreshable
 {
     private readonly PartService _partService = new();
-
+    private readonly InventoryService _inventoryService = new();
     public ObservableCollection<Part> Parts { get; } = new();
     public ObservableCollection<Part> LowStockParts { get; } = new();
 
@@ -157,7 +157,7 @@ public class PartViewModel : INotifyPropertyChanged, IRefreshable
     {
         LowStockParts.Clear();
 
-        foreach (var part in _partService.GetLowStockParts())
+        foreach (var part in _inventoryService.GetLowStockParts())
         {
             LowStockParts.Add(part);
         }

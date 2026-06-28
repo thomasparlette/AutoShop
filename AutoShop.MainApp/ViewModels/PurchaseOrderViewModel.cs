@@ -6,7 +6,6 @@ using AutoShop.Services;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -192,7 +191,6 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
         }
 
         RefreshTotals();
-        OnPropertyChanged(nameof(CurrentPurchaseOrder));
     }
 
     private void NewPurchaseOrder()
@@ -270,7 +268,6 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
             return;
         }
 
-        CurrentPurchaseOrder.Status = PurchaseOrderStatus.PartialReceived;
         var updated = _purchaseOrderService.ReceivePurchaseOrder(CurrentPurchaseOrder);
 
         LoadPurchaseOrders();
@@ -304,7 +301,6 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
             return;
 
         var existing = LineItems.FirstOrDefault(x => x.PartNumber == part.PartNumber);
-
         if (existing != null)
         {
             existing.QuantityOrdered += 1;
@@ -342,6 +338,17 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
         RefreshTotals();
     }
 
+    private void SyncCurrentPurchaseOrder()
+    {
+        CurrentPurchaseOrder.LineItems = LineItems.Select(CloneLineItem).ToList();
+
+        if (!string.IsNullOrWhiteSpace(CurrentPurchaseOrder.Supplier))
+            CurrentPurchaseOrder.Supplier = CurrentPurchaseOrder.Supplier.Trim();
+
+        if (!string.IsNullOrWhiteSpace(CurrentPurchaseOrder.Notes))
+            CurrentPurchaseOrder.Notes = CurrentPurchaseOrder.Notes.Trim();
+    }
+
     public void RefreshTotals()
     {
         SyncCurrentPurchaseOrder();
@@ -353,11 +360,6 @@ public class PurchaseOrderViewModel : INotifyPropertyChanged, IRefreshable
         ReceivedTotal = LineItems.Sum(x => x.QuantityReceived * x.UnitCost);
 
         OnPropertyChanged(nameof(CurrentPurchaseOrder));
-    }
-
-    private void SyncCurrentPurchaseOrder()
-    {
-        CurrentPurchaseOrder.LineItems = LineItems.Select(CloneLineItem).ToList();
     }
 
     private static PurchaseOrder ClonePurchaseOrder(PurchaseOrder source)

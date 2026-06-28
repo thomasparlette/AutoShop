@@ -34,7 +34,7 @@ public class InvoicePrintService
         using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
         var shop = db.ShopSettings.FirstOrDefault() ?? new ShopSettings();
 
-        var doc = CreateBaseDocument();
+        var doc = ReportFormatting.CreateBaseDocument();
 
         BuildCopy(doc, safeWorkOrder, shop, internalCopy: true);
         AddPageBreak(doc);
@@ -84,144 +84,6 @@ public class InvoicePrintService
         AppendChecklistPage(doc, workOrder, shop, copyLabel, itemPages.Count + 1, totalPagesForThisCopy);
     }
 
-    private static FlowDocument CreateBaseDocument()
-    {
-        return new FlowDocument
-        {
-            FontFamily = new FontFamily("Segoe UI"),
-            FontSize = 8.75,
-            PageWidth = 816,
-            PageHeight = 1056,
-            PagePadding = new Thickness(12),
-            ColumnWidth = double.PositiveInfinity
-        };
-    }
-
-    private static void AppendChecklistCopy(FlowDocument doc, WorkOrder workOrder, ShopSettings shop, bool internalCopy)
-    {
-        var copyLabel = internalCopy ? "INTERNAL COPY" : "CUSTOMER COPY";
-
-        AddHeader(doc, shop, "VEHICLE INSPECTION", copyLabel);
-        AddCentered(doc, "VEHICLE INSPECTION", 14, true);
-        AddCentered(doc, copyLabel, 11, true);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
-
-        AddInspectionMetaTable(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
-
-        AddInspectionLegend(doc);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
-
-        AddInspectionSections(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 6, 0, 6) });
-
-        AddInspectionComments(doc, workOrder);
-        doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 8, 0, 6) });
-
-        AddCentered(doc, copyLabel, 11, true);
-    }
-
-    private static void AddHeader(FlowDocument doc, ShopSettings shop, string docKind, string copyLabel)
-    {
-        var root = new Grid
-        {
-            Margin = new Thickness(0, 0, 0, 6)
-        };
-
-        root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });
-        root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(165) });
-
-        var logo = TryBuildLogo(shop.LogoPath);
-        if (logo != null)
-        {
-            Grid.SetColumn(logo, 0);
-            root.Children.Add(logo);
-        }
-
-        var infoPanel = new StackPanel
-        {
-            VerticalAlignment = VerticalAlignment.Top,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-
-        infoPanel.Children.Add(new TextBlock
-        {
-            Text = shop.ShopName ?? "AutoShop",
-            FontSize = 18,
-            FontWeight = FontWeights.Bold,
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 2),
-            TextWrapping = TextWrapping.Wrap
-        });
-
-        if (!string.IsNullOrWhiteSpace(shop.AddressLine1))
-            infoPanel.Children.Add(HeaderLine(shop.AddressLine1));
-
-        if (!string.IsNullOrWhiteSpace(shop.AddressLine2))
-            infoPanel.Children.Add(HeaderLine(shop.AddressLine2));
-
-        var cityStateZip = string.Join(" ",
-            new[] { shop.City, shop.State, shop.PostalCode }
-                .Where(x => !string.IsNullOrWhiteSpace(x)));
-
-        if (!string.IsNullOrWhiteSpace(cityStateZip))
-            infoPanel.Children.Add(HeaderLine(cityStateZip));
-
-        if (!string.IsNullOrWhiteSpace(shop.Phone))
-            infoPanel.Children.Add(HeaderLine(shop.Phone));
-
-        if (!string.IsNullOrWhiteSpace(shop.Email))
-            infoPanel.Children.Add(HeaderLine(shop.Email));
-
-        if (!string.IsNullOrWhiteSpace(shop.Website))
-            infoPanel.Children.Add(HeaderLine(shop.Website));
-
-        Grid.SetColumn(infoPanel, 1);
-        root.Children.Add(infoPanel);
-
-        var rightPanel = new StackPanel
-        {
-            VerticalAlignment = VerticalAlignment.Top,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-
-        rightPanel.Children.Add(new TextBlock
-        {
-            Text = docKind,
-            FontSize = 15,
-            FontWeight = FontWeights.Bold,
-            Foreground = Brushes.DarkRed,
-            TextAlignment = TextAlignment.Right,
-            Margin = new Thickness(0, 0, 0, 2)
-        });
-
-        rightPanel.Children.Add(new TextBlock
-        {
-            Text = copyLabel,
-            FontSize = 10.5,
-            FontWeight = FontWeights.Bold,
-            TextAlignment = TextAlignment.Right
-        });
-
-        Grid.SetColumn(rightPanel, 2);
-        root.Children.Add(rightPanel);
-
-        doc.Blocks.Add(new BlockUIContainer(root));
-    }
-
-    private static TextBlock HeaderLine(string text)
-    {
-        return new TextBlock
-        {
-            Text = text,
-            FontSize = 10,
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0),
-            TextWrapping = TextWrapping.Wrap
-        };
-    }
-
     private static void AddCustomerAndInvoiceInfo(FlowDocument doc, WorkOrder workOrder, ShopSettings shop)
     {
         var table = new Table { CellSpacing = 0 };
@@ -262,13 +124,13 @@ public class InvoicePrintService
         {
             Cells =
         {
-            Cell("YEAR", true),
-            Cell("MAKE", true),
-            Cell("MODEL", true),
-            Cell("VIN", true),
-            Cell("LICENSE", true),
-            Cell("MILEAGE IN", true),
-            Cell("MILEAGE OUT", true)
+            ReportFormatting.Cell("YEAR", true),
+            ReportFormatting.Cell("MAKE", true),
+            ReportFormatting.Cell("MODEL", true),
+            ReportFormatting.Cell("VIN", true),
+            ReportFormatting.Cell("LICENSE", true),
+            ReportFormatting.Cell("MILEAGE IN", true),
+            ReportFormatting.Cell("MILEAGE OUT", true)
         }
         });
 
@@ -276,13 +138,13 @@ public class InvoicePrintService
         {
             Cells =
         {
-            Cell(workOrder.Vehicle?.Year?.ToString() ?? string.Empty),
-            Cell(workOrder.Vehicle?.Make ?? string.Empty),
-            Cell(workOrder.Vehicle?.Model ?? string.Empty),
-            Cell(workOrder.Vehicle?.Vin ?? string.Empty),
-            Cell(workOrder.Vehicle?.LicensePlate ?? string.Empty),
-            Cell(workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty),
-            Cell(workOrder.MileageOut?.ToString() ?? string.Empty),
+            ReportFormatting.Cell(workOrder.Vehicle?.Year?.ToString() ?? string.Empty),
+            ReportFormatting.Cell(workOrder.Vehicle?.Make ?? string.Empty),
+            ReportFormatting.Cell(workOrder.Vehicle?.Model ?? string.Empty),
+            ReportFormatting.Cell(workOrder.Vehicle?.Vin ?? string.Empty),
+            ReportFormatting.Cell(workOrder.Vehicle?.LicensePlate ?? string.Empty),
+            ReportFormatting.Cell(workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty),
+            ReportFormatting.Cell(workOrder.MileageOut?.ToString() ?? string.Empty),
         }
         });
 
@@ -305,11 +167,11 @@ public class InvoicePrintService
         {
             Cells =
         {
-            Cell("TYPE", true),
-            Cell("DESCRIPTION", true),
-            Cell("QTY", true),
-            Cell("UNIT", true),
-            Cell("TOTAL", true)
+            ReportFormatting.Cell("TYPE", true),
+            ReportFormatting.Cell("DESCRIPTION", true),
+            ReportFormatting.Cell("QTY", true),
+            ReportFormatting.Cell("UNIT", true),
+            ReportFormatting.Cell("TOTAL", true)
         }
         });
 
@@ -319,11 +181,11 @@ public class InvoicePrintService
             {
                 Cells =
             {
-                Cell(item.ItemType.ToString().ToUpperInvariant()),
-                Cell(item.Description ?? string.Empty),
-                Cell(item.Quantity.ToString("N2")),
-                Cell(item.UnitPrice.ToString("C")),
-                Cell(item.LineTotal.ToString("C"))
+                ReportFormatting.Cell(item.ItemType.ToString().ToUpperInvariant()),
+                ReportFormatting.Cell(item.Description ?? string.Empty),
+                ReportFormatting.Cell(item.Quantity.ToString("N2")),
+                ReportFormatting.Cell(item.UnitPrice.ToString("C")),
+                ReportFormatting.Cell(item.LineTotal.ToString("C"))
             }
             });
         }
@@ -445,9 +307,9 @@ public class InvoicePrintService
             Padding = new Thickness(6)
         };
 
-        left.Blocks.Add(MetaParagraph("RO #:", workOrder.WorkOrderNumber ?? string.Empty));
-        left.Blocks.Add(MetaParagraph("DATE:", workOrder.CreatedAt.ToString("g")));
-        left.Blocks.Add(MetaParagraph("CUSTOMER:", workOrder.Customer?.FullName ?? string.Empty));
+        left.Blocks.Add(ReportFormatting.MetaParagraph("RO #:", workOrder.WorkOrderNumber ?? string.Empty));
+        left.Blocks.Add(ReportFormatting.MetaParagraph("DATE:", workOrder.CreatedAt.ToString("g")));
+        left.Blocks.Add(ReportFormatting.MetaParagraph("CUSTOMER:", workOrder.Customer?.FullName ?? string.Empty));
 
         var right = new TableCell
         {
@@ -457,11 +319,11 @@ public class InvoicePrintService
         };
 
         var vehicleText = $"{workOrder.Vehicle?.Year} {workOrder.Vehicle?.Make} {workOrder.Vehicle?.Model}".Trim();
-        right.Blocks.Add(MetaParagraph("VEHICLE:", vehicleText));
-        right.Blocks.Add(MetaParagraph("VIN:", workOrder.Vehicle?.Vin ?? string.Empty));
-        right.Blocks.Add(MetaParagraph("LICENSE:", workOrder.Vehicle?.LicensePlate ?? string.Empty));
-        right.Blocks.Add(MetaParagraph("MILEAGE IN:", workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty));
-        right.Blocks.Add(MetaParagraph("MILEAGE OUT:", workOrder.Vehicle?.MileageOut?.ToString() ?? string.Empty));
+        right.Blocks.Add(ReportFormatting.MetaParagraph("VEHICLE:", vehicleText));
+        right.Blocks.Add(ReportFormatting.MetaParagraph("VIN:", workOrder.Vehicle?.Vin ?? string.Empty));
+        right.Blocks.Add(ReportFormatting.MetaParagraph("LICENSE:", workOrder.Vehicle?.LicensePlate ?? string.Empty));
+        right.Blocks.Add(ReportFormatting.MetaParagraph("MILEAGE IN:", workOrder.Vehicle?.Mileage?.ToString() ?? string.Empty));
+        right.Blocks.Add(ReportFormatting.MetaParagraph("MILEAGE OUT:", workOrder.Vehicle?.MileageOut?.ToString() ?? string.Empty));
 
         rg.Rows.Add(new TableRow { Cells = { left, right } });
         doc.Blocks.Add(table);
@@ -482,10 +344,10 @@ public class InvoicePrintService
         {
             Cells =
             {
-                LegendCell("GOOD", Brushes.Green, Brushes.White),
-                LegendCell("FUTURE ATTENTION", Brushes.Goldenrod, Brushes.Black),
-                LegendCell("NEEDS IMMEDIATE ATTENTION", Brushes.DarkRed, Brushes.White),
-                LegendCell("NOT INSPECTED", Brushes.LightGray, Brushes.Black)
+                ReportFormatting.LegendCell("GOOD", Brushes.Green, Brushes.White),
+                ReportFormatting.LegendCell("FUTURE ATTENTION", Brushes.Goldenrod, Brushes.Black),
+                ReportFormatting.LegendCell("NEEDS IMMEDIATE ATTENTION", Brushes.DarkRed, Brushes.White),
+                ReportFormatting.LegendCell("NOT INSPECTED", Brushes.LightGray, Brushes.Black)
             }
         });
 
@@ -508,7 +370,7 @@ public class InvoicePrintService
             var rg = new TableRowGroup();
             table.RowGroups.Add(rg);
 
-            var header = Cell(group.Key.ToUpperInvariant(), true, TextAlignment.Left, Brushes.Navy, Brushes.White);
+            var header = ReportFormatting.Cell(group.Key.ToUpperInvariant(), true, TextAlignment.Left, Brushes.Navy, Brushes.White);
             header.ColumnSpan = 3;
             rg.Rows.Add(new TableRow { Cells = { header } });
 
@@ -522,9 +384,9 @@ public class InvoicePrintService
                 {
                     Cells =
                     {
-                        Cell(item.ItemName ?? string.Empty),
-                        Cell(statusText, true, TextAlignment.Center, statusBrush, GetContrastingForeground(statusBrush)),
-                        Cell(notes)
+                        ReportFormatting.Cell(item.ItemName ?? string.Empty),
+                        ReportFormatting.Cell(statusText, true, TextAlignment.Center, statusBrush, GetContrastingForeground(statusBrush)),
+                        ReportFormatting.Cell(notes)
                     }
                 });
             }
@@ -532,31 +394,6 @@ public class InvoicePrintService
             doc.Blocks.Add(table);
         }
     }
-
-    private static void AddInspectionComments(FlowDocument doc, WorkOrder workOrder)
-    {
-        doc.Blocks.Add(new Paragraph
-        {
-            Margin = new Thickness(0),
-            FontWeight = FontWeights.Bold,
-            Inlines = { new Run("COMMENTS / RECOMMENDATIONS") }
-        });
-
-        if (!string.IsNullOrWhiteSpace(workOrder.Inspection?.OverallNotes))
-        {
-            doc.Blocks.Add(new Paragraph
-            {
-                Margin = new Thickness(0),
-                Inlines = { new Run(workOrder.Inspection.OverallNotes) }
-            });
-        }
-        else
-        {
-            for (int i = 0; i < 3; i++)
-                doc.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
-        }
-    }
-
     private static void AddPageBreak(FlowDocument doc)
     {
         doc.Blocks.Add(new Paragraph
@@ -565,7 +402,6 @@ public class InvoicePrintService
             BreakPageBefore = true
         });
     }
-
     private static string BuildCustomerBlock(WorkOrder workOrder)
     {
         var customer = workOrder.Customer;
@@ -582,7 +418,6 @@ public class InvoicePrintService
             $"{cityStateZip}\n" +
             $"{customer?.Phone ?? string.Empty}";
     }
-
     private static string BuildInvoiceBlock(WorkOrder workOrder, ShopSettings shop)
     {
         var advisor = AppSession.CurrentUser?.DisplayName ?? "UNASSIGNED";
@@ -595,7 +430,6 @@ public class InvoicePrintService
             $"TECHNICIAN: {tech}\n" +
             $"STATUS: {workOrder.StatusDisplay}";
     }
-
     private static TableCell BlockCell(string text)
     {
         var cell = new TableCell
@@ -608,69 +442,6 @@ public class InvoicePrintService
         cell.Blocks.Add(new Paragraph { Margin = new Thickness(0), Inlines = { new Run(text ?? string.Empty) } });
         return cell;
     }
-
-    private static TableCell Cell(string text,bool bold = false,TextAlignment align = TextAlignment.Left,Brush? background = null,Brush? foreground = null)
-    {
-        var p = new Paragraph
-        {
-            Margin = new Thickness(0),
-            TextAlignment = align
-        };
-
-        p.Inlines.Add(new Run(text ?? string.Empty)
-        {
-            FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
-            Foreground = foreground ?? Brushes.Black
-        });
-
-        var cell = new TableCell(p)
-        {
-            BorderBrush = Brushes.Black,
-            BorderThickness = new Thickness(0.5),
-            Padding = new Thickness(3)
-        };
-
-        if (background != null)
-            cell.Background = background;
-
-        return cell;
-    }
-
-    private static TableCell LegendCell(string text, Brush background, Brush foreground)
-    {
-        return Cell(text, true, TextAlignment.Center, background, foreground);
-    }
-
-    private static Image? TryBuildLogo(string? logoPath)
-    {
-        if (string.IsNullOrWhiteSpace(logoPath) || !File.Exists(logoPath))
-            return null;
-
-        try
-        {
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.UriSource = new Uri(logoPath, UriKind.Absolute);
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.DecodePixelWidth = 100;
-            bmp.EndInit();
-            bmp.Freeze();
-
-            return new Image
-            {
-                Source = bmp,
-                Width = 80,
-                Height = 80,
-                Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Left
-            };
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     private static Brush GetInspectionBrush(InspectionStatus status)
     {
         return status switch
@@ -681,7 +452,6 @@ public class InvoicePrintService
             _ => Brushes.LightGray
         };
     }
-
     private static Brush GetContrastingForeground(Brush brush)
     {
         if (brush == Brushes.Goldenrod || brush == Brushes.LightGray || brush == Brushes.Yellow)
@@ -689,7 +459,6 @@ public class InvoicePrintService
 
         return Brushes.White;
     }
-
     private static string GetInspectionStatusText(InspectionStatus status)
     {
         return status switch
@@ -700,7 +469,6 @@ public class InvoicePrintService
             _ => "NOT INSPECTED"
         };
     }
-
     private static int SectionOrder(string section)
     {
         return section switch
@@ -712,45 +480,18 @@ public class InvoicePrintService
             _ => 99
         };
     }
-
     private static bool IsReceipt(WorkOrder? workOrder)
     {
         return workOrder?.Status is WorkOrderStatus.Completed or WorkOrderStatus.Paid or WorkOrderStatus.Closed;
     }
-
-    private static void AddCentered(FlowDocument doc, string text, double size = 10, bool bold = false)
-    {
-        var p = new Paragraph
-        {
-            Margin = new Thickness(0),
-            TextAlignment = TextAlignment.Center
-        };
-
-        p.Inlines.Add(new Run(text ?? string.Empty)
-        {
-            FontSize = size,
-            FontWeight = bold ? FontWeights.Bold : FontWeights.Normal
-        });
-
-        doc.Blocks.Add(p);
-    }
-    private static Paragraph MetaParagraph(string label, string value)
-    {
-        var p = new Paragraph { Margin = new Thickness(0) };
-        p.Inlines.Add(new Run(label) { FontWeight = FontWeights.Bold });
-        p.Inlines.Add(new Run(" "));
-        p.Inlines.Add(new Run(value));
-        return p;
-    }
-
     private static TableRow LabelValueRow(string label, string value)
     {
         return new TableRow
         {
             Cells =
         {
-            Cell(label, true),
-            Cell(value, false, TextAlignment.Right)
+            ReportFormatting.Cell(label, true),
+            ReportFormatting.Cell(value, false, TextAlignment.Right)
         }
         };
     }
@@ -758,7 +499,7 @@ public class InvoicePrintService
     {
         if (isFirstPage)
         {
-            AddHeader(doc, shop, docKind, copyLabel);
+            ReportFormatting.AddCompanyHeader(doc, shop, docKind, copyLabel);
             doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
 
             AddCustomerAndInvoiceInfo(doc, workOrder, shop);
@@ -769,8 +510,8 @@ public class InvoicePrintService
         }
         else
         {
-            AddCentered(doc, $"{docKind} - CONTINUED", 12, true);
-            AddCentered(doc, copyLabel, 10, true);
+            ReportFormatting.AddCentered(doc, $"{docKind} - CONTINUED", 12, true);
+            ReportFormatting.AddCentered(doc, copyLabel, 10, true);
             doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 4) });
         }
 
@@ -785,14 +526,14 @@ public class InvoicePrintService
             AddAuthorizationBlock(doc);
             doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
 
-            AddCentered(doc, $"{docKind} • {copyLabel}", 11, true);
+            ReportFormatting.AddCentered(doc, $"{docKind} • {copyLabel}", 11, true);
         }
 
-        AddPageNumberFooter(doc, pageNumber, totalPages);
+        ReportFormatting.AddPageNumberFooter(doc, pageNumber, totalPages);
     }
     private static void AppendChecklistPage(FlowDocument doc,WorkOrder workOrder,ShopSettings shop,string copyLabel,int pageNumber,int totalPages)
     {
-        AddHeader(doc, shop, "VEHICLE INSPECTION CHECKLIST", copyLabel);
+        ReportFormatting.AddCompanyHeader(doc, shop, "VEHICLE INSPECTION CHECKLIST", copyLabel);
         doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
 
         AddInspectionMetaTable(doc, workOrder);
@@ -803,25 +544,9 @@ public class InvoicePrintService
 
         AddInspectionSections(doc, workOrder);
         doc.Blocks.Add(new Paragraph { Margin = new Thickness(0, 2, 0, 2) });
-        AddCentered(doc, copyLabel, 11, true);
+        ReportFormatting.AddCentered(doc, copyLabel, 11, true);
 
-        AddPageNumberFooter(doc, pageNumber, totalPages);
-    }
-    private static void AddPageNumberFooter(FlowDocument doc, int pageNumber, int totalPages)
-    {
-        doc.Blocks.Add(new Paragraph
-        {
-            Margin = new Thickness(6, 8, 6, 0),
-            TextAlignment = TextAlignment.Center,
-            Inlines =
-        {
-            new Run($"PAGE {pageNumber} OF {totalPages}")
-            {
-                FontSize = 9,
-                FontWeight = FontWeights.Bold
-            }
-        }
-        });
+        ReportFormatting.AddPageNumberFooter(doc, pageNumber, totalPages);
     }
     private static List<WorkOrderLineItem> GetOrderedLineItems(WorkOrder workOrder)
     {
