@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path="README.md" />
-  </Folder>
   <Project Path="AutoShop.Core/AutoShop.Core.csproj" />
   <Project Path="AutoShop.Data/AutoShop.Data.csproj" />
   <Project Path="AutoShop.MainApp/AutoShop.MainApp.csproj" />
