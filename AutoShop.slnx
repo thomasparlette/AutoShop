@@ -3,4 +3,9 @@
   <Project Path="AutoShop.Data/AutoShop.Data.csproj" />
   <Project Path="AutoShop.MainApp/AutoShop.MainApp.csproj" />
   <Project Path="AutoShop.Services/AutoShop.Services.csproj" />
+  <Project Path="AutoShop.Tests.Benchmarks/AutoShop.Tests.Benchmarks.csproj" Id="ba434806-f56b-42e2-a868-82ca532ce4ba" />
+  <Project Path="AutoShop.Tests.Common/AutoShop.Tests.Common.csproj" />
+  <Project Path="AutoShop.Tests.Integration/AutoShop.Tests.Integration.csproj" Id="dcb8279a-774d-445b-bb41-31e558590859" />
+  <Project Path="AutoShop.Tests.UI/AutoShop.Tests.UI.csproj" Id="69992f64-737b-4e43-bd9f-452829b2a8ed" />
+  <Project Path="AutoShop.Tests.Unit/AutoShop.Tests.Unit.csproj" Id="9a370c27-825f-48df-a958-21e6d8cd51b2" />
 </Solution>

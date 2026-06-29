@@ -1,24 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace AutoShop.Data
+namespace AutoShop.Data;
+
+public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
-    public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+    private static string GetConnectionString()
     {
-        public AppDbContext CreateDbContext(string[] args)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        var overrideValue = Environment.GetEnvironmentVariable("AUTOSHOP_CONNECTION_STRING");
+        if (!string.IsNullOrWhiteSpace(overrideValue))
+            return overrideValue;
 
-            var dbPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "AutoShop",
-                "AutoShop.db");
+        return "Data Source=AutoShop.db";
+    }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+    public AppDbContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        optionsBuilder.UseSqlite(GetConnectionString());
 
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
-
-            return new AppDbContext(optionsBuilder.Options);
-        }
+        return new AppDbContext(optionsBuilder.Options);
     }
 }
